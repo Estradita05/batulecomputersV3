@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Comprobante de Servicio — BATULE COMPUTERS</title>
+  <style>
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;margin:0;background:#0f172a;color:#111827;padding:20px}
+    .barra-acciones{max-width:760px;margin:0 auto 14px;display:flex;justify-content:space-between;align-items:center}
+    .btn{background:#2563eb;color:#fff;border:0;border-radius:8px;padding:9px 18px;font-weight:600;cursor:pointer;font-size:14px}
+    .btn.sec{background:#334155}
+    .ticket{max-width:760px;margin:0 auto;background:#fff;border-radius:12px;padding:28px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+    .encabezado{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1e3a8a;padding-bottom:14px;margin-bottom:16px}
+    .marca h1{margin:0;font-size:22px;color:#0f172a;letter-spacing:.03em}
+    .marca p{margin:3px 0 0;font-size:12px;color:#475569}
+    .folio-box{text-align:right}
+    .folio-box .folio{font-size:20px;font-weight:800;color:#1d4ed8}
+    .folio-box .estatus{display:inline-block;margin-top:4px;background:#dbeafe;color:#1e40af;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:700}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+    .bloque{border:1px solid #cbd5e1;border-radius:8px;padding:12px}
+    .bloque h3{margin:0 0 8px;font-size:12px;text-transform:uppercase;color:#1e3a8a;letter-spacing:.04em}
+    .dato{font-size:13px;margin:4px 0}
+    table{width:100%;border-collapse:collapse;margin-top:6px;font-size:13px}
+    th,td{padding:7px 8px;border-bottom:1px solid #e2e8f0;text-align:left}
+    th{background:#f8fafc;color:#334155;font-weight:700}
+    .totales{margin-top:10px;text-align:right;font-size:13px;line-height:1.6}
+    .totales .gran{font-size:16px;font-weight:800;color:#0f172a}
+    .totales .saldo{font-size:15px;font-weight:800;color:#15803d}
+    .totales .saldo.pendiente{color:#b91c1c}
+    .firmas{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:26px;padding-top:14px}
+    .firma-col{text-align:center;font-size:12px;color:#475569}
+    .firma-col .linea-firma{border-top:1px solid #64748b;margin-top:48px;padding-top:6px}
+    .firma-img{max-height:75px;max-width:220px;object-fit:contain;display:block;margin:4px auto}
+    .condiciones{margin-top:16px;font-size:11px;color:#64748b;border-top:1px dashed #cbd5e1;padding-top:10px;text-align:justify}
+    @media print{
+      body{background:#fff;padding:0}
+      .barra-acciones{display:none!important}
+      .ticket{box-shadow:none;padding:10px;max-width:100%}
+    }
+  </style>
+</head>
+<body>
+  <div class="barra-acciones">
+    <button class="btn sec" onclick="window.close()">← Volver al panel</button>
+    <button class="btn" onclick="window.print()">🖨️ Imprimir Ticket / Guardar PDF</button>
+  </div>
+  <div id="contenidoTicket" class="ticket">Cargando comprobante...</div>
+
+  <script>
+    const esc = s => (s ?? '').toString().replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const fmtFecha = d => {
+      if (!d) return '—';
+      try {
+        return new Date(d).toLocaleString('es-MX', {
+          timeZone: 'America/Mexico_City',
+          year: 'numeric', month: '2-digit', day: '2-digit',
+          hour: '2-digit', minute: '2-digit'
+        });
+      } catch (e) { return String(d); }
+    };
+    const fmtMXN = n => Number(n || 0).toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+
+    async function cargarTicket() {
+      const p = new URLSearchParams(location.search);
+      const folio = p.get('folio');
+      const T = localStorage.getItem('t') || '';
+      if (!folio || !T) {
+        document.getElementById('contenidoTicket').innerHTML = '<p>Folio o sesión no válida. Abre este comprobante desde el panel del taller.</p>';
+        return;
+      }
+      const r = await fetch('/api/ordenes/' + encodeURIComponent(folio), {
+        headers: { Authorization: 'Bearer ' + T }
+      });
+      const o = await r.json().catch(() => ({}));
+      if (!r.ok) {
+        document.getElementById('contenidoTicket').innerHTML = `<p>${esc(o.detail || 'Error al cargar orden')}</p>`;
+        return;
+      }
+      const c = o.cotizacion;
+      const pagos = o.pagos || [];
+      const urlSeguimiento = `${location.origin}/?folio=${encodeURIComponent(o.folio)}`;
+
+      document.getElementById('contenidoTicket').innerHTML = `
+        <div class="encabezado">
+          <div class="marca">
+            <h1>🖥️ BATULE COMPUTERS</h1>
+            <p>Taller de Reparación, Diagnóstico y Mantenimiento de Cómputo</p>
+            <p>Seguimiento en línea: <b>${esc(urlSeguimiento)}</b></p>
+          </div>
+          <div class="folio-box">
+            <div class="folio">${esc(o.folio)}</div>
+            <div class="estatus">${esc(o.estatus)}</div>
+            <div style="font-size:12px;color:#475569;margin-top:4px">Ingreso: ${fmtFecha(o.fecha_ingreso)}</div>
+            ${o.fecha_estimada ? `<div style="font-size:12px;color:#475569">Entrega est.: ${esc(o.fecha_estimada)}</div>` : ''}
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div class="bloque">
+            <h3>1. Datos del Cliente</h3>
+            <div class="dato"><b>Núm. de Cliente:</b> ${esc(o.numero_cliente || '—')}</div>
+            <div class="dato"><b>Nombre:</b> ${esc(o.cliente)}</div>
+            <div class="dato"><b>Teléfono / WhatsApp:</b> ${esc(o.telefono)}</div>
+            <div class="dato"><b>Correo:</b> ${esc(o.correo || 'No registrado')}</div>
+            <div class="dato"><b>Iniciales de técnicos que reciben:</b> ${esc(o.iniciales_tecnicos || o.tecnico_nombre || 'Por asignar')}</div>
+          </div>
+          <div class="bloque">
+            <h3>2. Identificación del Equipo</h3>
+            ${o.seccion_equipo ? `<div class="dato"><b>Sección:</b> ${esc(o.seccion_equipo)}</div>` : ''}
+            <div class="dato"><b>Dispositivo / Servicio:</b> ${esc(o.tipo)} ${esc(o.marca || '')} ${esc(o.modelo || '')}</div>
+            <div class="dato"><b>Número de Serie (S/N):</b> ${esc(o.num_serie || 'N/A')}</div>
+            <div class="dato"><b>Accesorios / Inspección:</b> ${esc(o.accesorios || 'Ninguno')}</div>
+          </div>
+        </div>
+
+        <div class="bloque" style="margin-bottom:14px">
+          <h3>3. Motivo de Ingreso / Falla Reportada</h3>
+          <div class="dato">${esc(o.falla)}</div>
+        </div>
+
+        <div class="bloque" style="margin-bottom:14px">
+          <h3>4. Presupuesto, Anticipos y Estado de Cuenta (MXN)</h3>
+          ${c && c.items?.length ? `
+            <table>
+              <thead>
+                <tr><th>Concepto</th><th>Tipo</th><th>Cant.</th><th>P. Unitario</th><th>Importe</th></tr>
+              </thead>
+              <tbody>
+                ${c.items.map(i => `
+                  <tr>
+                    <td>${esc(i.descripcion)}</td>
+                    <td>${i.tipo === 'mano_obra' ? 'Mano de obra' : 'Refacción'}</td>
+                    <td>${i.cantidad}</td>
+                    <td>${fmtMXN(i.precio)}</td>
+                    <td>${fmtMXN(i.cantidad * i.precio)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          ` : '<div class="dato">Presupuesto sujeto a revisión técnica.</div>'}
+
+          ${pagos.length ? `
+            <div style="margin-top:10px;font-size:12px;font-weight:700;color:#334155">Anticipos / Pagos registrados:</div>
+            <table>
+              <thead>
+                <tr><th>Fecha</th><th>Concepto</th><th>Método</th><th>Monto</th></tr>
+              </thead>
+              <tbody>
+                ${pagos.map(pg => `
+                  <tr>
+                    <td>${fmtFecha(pg.fecha)}</td>
+                    <td>${esc(pg.concepto)}</td>
+                    <td style="text-transform:capitalize">${esc(pg.metodo)}</td>
+                    <td>${fmtMXN(pg.monto)}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          ` : ''}
+
+          <div class="totales">
+            ${c ? `
+              <div>Subtotal: <b>${fmtMXN(c.subtotal)}</b></div>
+              <div>IVA (${c.iva_porcentaje}%): <b>${fmtMXN(c.iva_monto)}</b></div>
+            ` : ''}
+            <div class="gran">Total Orden: ${fmtMXN(o.total_cotizado)} MXN</div>
+            <div>Total Abonado / Pagado: <b>${fmtMXN(o.total_pagado)} MXN</b></div>
+            <div class="saldo ${o.saldo_pendiente > 0 ? 'pendiente' : ''}">
+              Saldo Pendiente: ${fmtMXN(o.saldo_pendiente)} MXN
+            </div>
+          </div>
+        </div>
+
+        ${o.entregado_a ? `
+          <div class="bloque" style="margin-bottom:14px;background:#f0fdf4;border-color:#86efac">
+            <h3>5. Constancia de Entrega de Equipo</h3>
+            <div class="dato"><b>Recibido de conformidad por:</b> ${esc(o.entregado_a)}</div>
+            <div class="dato"><b>Fecha y hora de entrega:</b> ${fmtFecha(o.fecha_entrega)}</div>
+          </div>
+        ` : ''}
+
+        <div class="firmas">
+          <div class="firma-col">
+            <div class="linea-firma">Firma del Taller / Recepción</div>
+          </div>
+          <div class="firma-col">
+            ${o.firma_url ? `<img class="firma-img" src="${esc(o.firma_url)}" alt="Firma de conformidad">` : '<div style="height:48px"></div>'}
+            <div class="linea-firma" style="margin-top:0">
+              Firma de Conformidad del Cliente ${o.entregado_a ? `(${esc(o.entregado_a)})` : ''}
+            </div>
+          </div>
+        </div>
+
+        <div class="condiciones">
+          <b>Condiciones de servicio:</b> Para recoger el equipo es indispensable presentar este comprobante o acreditar la titularidad.
+          Puedes consultar fotografías de evidencia, aprobar cotizaciones y chatear en tiempo real con el técnico ingresando tu folio
+          <b>${esc(o.folio)}</b> y tu número telefónico de 10 dígitos en nuestro portal web.
+        </div>
+      `;
+    }
+    cargarTicket();
+  </script>
+</body>
+</html>

@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1d4ed8">
+  <title>Seguimiento de mi equipo — Taller de Cómputo</title>
+  <link rel="stylesheet" href="estilos.css?v=3.0">
+</head>
+<body>
+
+<!-- Barra superior minimalista -->
+<header style="background:var(--bg-surface);border-bottom:1px solid var(--border);height:58px;padding:0 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50">
+  <div style="display:flex;align-items:center;gap:10px;font-weight:700;color:var(--text-main)">
+    <span style="width:30px;height:30px;border-radius:8px;background:var(--accent);color:#fff;display:inline-flex;align-items:center;justify-content:center">
+      <svg class="icon" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+    </span>
+    <span>Taller de Cómputo</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <button id="btnOtraConsulta" class="sec sm hidden" onclick="volverAConsulta()">Cambiar folio</button>
+    <button type="button" class="sec sm" onclick="alternarTema()" id="btnTemaCliente">Tema</button>
+    <a href="/tecnico.html" class="btn ghost sm">Personal</a>
+  </div>
+</header>
+
+<main style="max-width:740px;margin:0 auto;padding:24px 16px">
+
+  <!-- PANTALLA 1: ENTRADA CENTRADA MOBILE-FIRST CON DOS CAMPOS -->
+  <section id="entrada" style="min-height:calc(100vh - 200px);display:flex;flex-direction:column;align-items:center;justify-content:center">
+
+    <!-- Tira minimalista de etapas del servicio -->
+    <div class="steps-bar" style="max-width:460px;width:100%;justify-content:space-between;margin-bottom:16px">
+      <div class="step-pill"><span class="num">1</span> Recepción</div>
+      <span class="step-divider">·</span>
+      <div class="step-pill"><span class="num">2</span> Diagnóstico</div>
+      <span class="step-divider">·</span>
+      <div class="step-pill"><span class="num">3</span> Reparación</div>
+      <span class="step-divider">·</span>
+      <div class="step-pill"><span class="num">4</span> Entrega</div>
+    </div>
+
+    <div class="card" style="max-width:460px;width:100%;margin:0;padding:28px">
+      <span class="badge status-neutral" style="margin-bottom:10px">Portal de clientes</span>
+      <h1 style="font-size:22px;margin:0 0 6px 0">Consulta el avance de tu equipo</h1>
+      <p style="font-size:13px;color:var(--text-muted);margin:0 0 22px 0">
+        Ingresa el folio impreso en tu comprobante de recepción y los 10 dígitos de tu teléfono registrado.
+      </p>
+
+      <div class="field" style="margin-bottom:16px">
+        <label for="f">Folio de servicio</label>
+        <input id="f" class="mono" placeholder="Ej. SRV-2026-00001" autocapitalize="characters" style="min-height:48px;font-size:15px">
+        <span id="errFolio" class="field-error">Ingresa tu folio de servicio</span>
+      </div>
+
+      <div class="field" style="margin-bottom:22px">
+        <label for="t">Teléfono registrado (10 dígitos)</label>
+        <input id="t" type="tel" inputmode="numeric" maxlength="14" placeholder="Ej. 5511223344" style="min-height:48px;font-size:15px" onkeydown="if(event.key==='Enter')consultar()">
+        <span id="errTel" class="field-error">Ingresa los 10 dígitos de tu teléfono</span>
+      </div>
+
+      <button id="btnConsultar" class="lg" onclick="consultar()" style="width:100%;min-height:48px">Ver estatus de mi equipo</button>
+    </div>
+  </section>
+
+  <!-- PANTALLA 2: RESULTADO CON TARJETA SUPERIOR Y SECCIONES EN PESTAÑAS -->
+  <section id="res" class="hidden"></section>
+
+</main>
+
+<!-- VISOR LIGHTBOX PARA FOTOS -->
+<div id="lightbox" class="lightbox hidden" onclick="cerrarLightbox()">
+  <button class="cerrar" onclick="cerrarLightbox()" aria-label="Cerrar visor">✕</button>
+  <img id="lbImg" src="" alt="Evidencia" onclick="event.stopPropagation()">
+  <div id="lbCap" class="caption"></div>
+</div>
+
+<footer class="privacidad">
+  Aviso de privacidad: Tus datos personales se utilizan exclusivamente para el diagnóstico, cotización y seguimiento de la reparación de tu equipo.
+</footer>
+
+<script>
+const $ = s => document.getElementById(s);
+let F = '', TEL = '', ws = null, etapaFiltro = 'todas', tabClienteActual = 'estatus';
+const ETIQUETAS_ETAPA = { recepcion: 'Recepción', proceso: 'En proceso', entrega: 'Entrega' };
+const esc = s => (s ?? '').toString().replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+function aplicarTemaGuardado() {
+  const t = localStorage.getItem('tema_ui') || 'auto';
+  if (t === 'light' || t === 'dark') {
+    document.documentElement.setAttribute('data-theme', t);
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+  }
+  const etiqueta = t === 'light' ? 'Tema: Claro' : t === 'dark' ? 'Tema: Oscuro' : 'Tema: Auto';
+  if ($('btnTemaCliente')) $('btnTemaCliente').textContent = etiqueta;
+}
+
+function alternarTema() {
+  const actualTema = localStorage.getItem('tema_ui') || 'auto';
+  const siguiente = actualTema === 'auto' ? 'dark' : actualTema === 'dark' ? 'light' : 'auto';
+  localStorage.setItem('tema_ui', siguiente);
+  aplicarTemaGuardado();
+}
+aplicarTemaGuardado();
+
+const fmtFecha = d => {
+  if (!d) return '';
+  try {
+    return new Date(d).toLocaleString('es-MX', {
+      timeZone: 'America/Mexico_City',
+      dateStyle: 'medium',
+      timeStyle: 'short'
+    });
+  } catch (e) {
+    return String(d);
+  }
+};
+
+const fmtMXN = n => {
+  const num = Number(n || 0);
+  return num.toLocaleString('es-MX', { style: 'currency', currency: 'MXN', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+
+function claseBadgeEstatus(estatus) {
+  const e = (estatus || '').toLowerCase();
+  if (e.includes('listo') || e.includes('entregado') || e === 'aprobada') return 'status-green';
+  if (e.includes('diagnóstico') || e.includes('cotización') || e.includes('aprobación') || e.includes('refacción') || e === 'pendiente') return 'status-amber';
+  if (e.includes('cancelado') || e.includes('no reparable') || e === 'rechazada') return 'status-red';
+  return 'status-neutral';
+}
+
+function mostrarError(idInput, idErr, msg) {
+  const inp = $(idInput);
+  const err = $(idErr);
+  if (inp) inp.classList.add('input-error');
+  if (err) {
+    if (msg) err.textContent = msg;
+    err.classList.add('visible');
+  }
+}
+
+function limpiarErrores() {
+  ['f', 't'].forEach(i => $(i)?.classList.remove('input-error'));
+  ['errFolio', 'errTel'].forEach(e => $(e)?.classList.remove('visible'));
+}
+
+const p = new URLSearchParams(location.search);
+if (p.get('folio')) $('f').value = p.get('folio');
+
+function volverAConsulta() {
+  if (ws) {
+    ws.close();
+    ws = null;
+  }
+  $('res').classList.add('hidden');
+  $('btnOtraConsulta').classList.add('hidden');
+  $('entrada').classList.remove('hidden');
+}
+
+function verFoto(url, cap) {
+  $('lbImg').src = url;
+  $('lbCap').textContent = cap || '';
+  $('lightbox').classList.remove('hidden');
+}
+
+function cerrarLightbox() {
+  $('lightbox').classList.add('hidden');
+  $('lbImg').src = '';
+}
+
+function filtrarEtapa(etapa) {
+  etapaFiltro = etapa;
+  consultar();
+}
+
+function cambiarTabCliente(tab) {
+  tabClienteActual = tab;
+  ['estatus', 'cotizacion', 'chat'].forEach(t => {
+    const panel = $(`cliPanel_${t}`);
+    const btn = $(`cliTab_${t}`);
+    if (panel) panel.classList.toggle('hidden', t !== tab);
+    if (btn) btn.classList.toggle('activo', t === tab);
+  });
+}
+
+async function consultar() {
+  limpiarErrores();
+  F = $('f').value.trim().toUpperCase();
+  TEL = $('t').value.trim();
+
+  if (!F) return mostrarError('f', 'errFolio', 'Ingresa tu folio de servicio');
+  if (!TEL || TEL.replace(/\D/g, '').length < 10) {
+    return mostrarError('t', 'errTel', 'Ingresa los 10 dígitos de tu teléfono');
+  }
+
+  const btn = $('btnConsultar');
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Consultando...';
+  }
+
+  try {
+    const r = await fetch(`/api/public/seguimiento/${encodeURIComponent(F)}?telefono=${encodeURIComponent(TEL)}`);
+    const o = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      mostrarError('t', 'errTel', o.detail || 'No encontramos una orden con ese folio y teléfono');
+      return;
+    }
+
+    $('entrada').classList.add('hidden');
+    $('btnOtraConsulta').classList.remove('hidden');
+    const res = $('res');
+    res.classList.remove('hidden');
+
+    const cot = o.cotizacion;
+    const itemsCot = cot?.items || [];
+    const todasFotos = o.fotos || [];
+    const fotosFiltradas = etapaFiltro === 'todas' ? todasFotos : todasFotos.filter(x => x.etapa === etapaFiltro);
+    const conteo = {
+      todas: todasFotos.length,
+      recepcion: todasFotos.filter(x => x.etapa === 'recepcion').length,
+      proceso: todasFotos.filter(x => x.etapa === 'proceso').length,
+      entrega: todasFotos.filter(x => x.etapa === 'entrega').length
+    };
+
+    res.innerHTML = `
+      <!-- TARJETA SUPERIOR CON FOLIO, EQUIPO Y ESTATUS EN GRANDE -->
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
+          <div>
+            <small class="text-muted">Folio de servicio</small>
+            <h1 class="mono" style="font-size:22px;margin:2px 0 4px 0">${esc(o.folio)}</h1>
+            <div style="font-size:15px;font-weight:500;color:var(--text-main)">
+              ${esc(o.tipo)} ${esc(o.marca || '')} ${esc(o.modelo || '')}
+            </div>
+          </div>
+          <div style="text-align:right">
+            <small class="text-muted" style="display:block;margin-bottom:4px">Estatus actual</small>
+            <span class="badge lg ${claseBadgeEstatus(o.estatus)}">${esc(o.estatus)}</span>
+          </div>
+        </div>
+
+        <div class="info-grid" style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+          <div class="info-item">
+            <span class="info-label">Cliente</span>
+            <span class="info-value">${esc(o.cliente)}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Fecha de ingreso</span>
+            <span class="info-value">${fmtFecha(o.fecha_ingreso)}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Entrega estimada</span>
+            <span class="info-value">${esc(o.fecha_estimada || 'Por confirmar')}</span>
+          </div>
+        </div>
+
+        ${o.total_cotizado > 0 ? `
+          <div class="saldo-resumen" style="margin-top:16px;margin-bottom:0">
+            <div class="saldo-item"><div class="lbl">Total cotizado</div><div class="monto">${fmtMXN(o.total_cotizado)}</div></div>
+            <div class="saldo-item"><div class="lbl">Abonado</div><div class="monto" style="color:var(--status-success-fg)">${fmtMXN(o.total_pagado)}</div></div>
+            <div class="saldo-item"><div class="lbl">Saldo al recoger</div><div class="monto" style="color:${o.saldo_pendiente > 0 ? 'var(--status-warning-fg)' : 'var(--status-success-fg)'}">${fmtMXN(o.saldo_pendiente)}</div></div>
+          </div>
+        ` : ''}
+      </div>
+
+      <!-- PESTAÑAS DE NAVEGACIÓN DEL CLIENTE -->
+      <div class="sub-tabs" role="tablist">
+        <button id="cliTab_estatus" class="sub-tab-btn activo" onclick="cambiarTabCliente('estatus')">
+          Estatus (${(o.historial || []).length})
+        </button>
+        <button id="cliTab_cotizacion" class="sub-tab-btn" onclick="cambiarTabCliente('cotizacion')">
+          Cotización ${cot && cot.estatus === 'pendiente' ? '•' : ''}
+        </button>
+        <button id="cliTab_chat" class="sub-tab-btn" onclick="cambiarTabCliente('chat')">
+          Chat (${(o.mensajes || []).length})
+        </button>
+      </div>
+
+      <!-- SECCIÓN 1: LÍNEA DE TIEMPO Y EVIDENCIA -->
+      <div id="cliPanel_estatus">
+        <div class="card">
+          <h3 class="card-title" style="margin-bottom:14px">Avance de la reparación</h3>
+          <div class="timeline">
+            ${(o.historial || []).map(h => `
+              <div class="timeline-item">
+                <span class="timeline-dot"></span>
+                <div class="timeline-title">${esc(h.estatus)}</div>
+                <div class="timeline-meta">${fmtFecha(h.fecha)}</div>
+                ${h.nota ? `<div class="timeline-note">${esc(h.nota)}</div>` : ''}
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        ${todasFotos.length ? `
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Evidencia fotográfica (${conteo.todas})</h3>
+              <div class="etapas-tabs">
+                <button class="etapas-tab-btn ${etapaFiltro === 'todas' ? 'activo' : ''}" onclick="filtrarEtapa('todas')">Todas (${conteo.todas})</button>
+                <button class="etapas-tab-btn ${etapaFiltro === 'recepcion' ? 'activo' : ''}" onclick="filtrarEtapa('recepcion')">Recepción (${conteo.recepcion})</button>
+                <button class="etapas-tab-btn ${etapaFiltro === 'proceso' ? 'activo' : ''}" onclick="filtrarEtapa('proceso')">En proceso (${conteo.proceso})</button>
+                <button class="etapas-tab-btn ${etapaFiltro === 'entrega' ? 'activo' : ''}" onclick="filtrarEtapa('entrega')">Entrega (${conteo.entrega})</button>
+              </div>
+            </div>
+            <div class="galeria-grid">
+              ${fotosFiltradas.map(x => `
+                <div class="foto-item">
+                  <img src="${esc(x.archivo_url)}" alt="${esc(x.descripcion || 'Evidencia')}" loading="lazy"
+                       onclick="verFoto('${esc(x.archivo_url)}', '${esc(ETIQUETAS_ETAPA[x.etapa] || x.etapa)}: ${esc(x.descripcion || '')}')">
+                  <div class="meta">
+                    <div>
+                      <span class="badge status-neutral">${esc(ETIQUETAS_ETAPA[x.etapa] || x.etapa)}</span>
+                      <div style="margin-top:4px">${esc(x.descripcion || '')}</div>
+                    </div>
+                    <small>${fmtFecha(x.fecha)}</small>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        ` : ''}
+      </div>
+
+      <!-- SECCIÓN 2: COTIZACIÓN CON BOTONES GRANDES APROBAR / RECHAZAR -->
+      <div id="cliPanel_cotizacion" class="hidden">
+        <div class="card">
+          ${cot ? `
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+              <h3 class="card-title">Presupuesto de reparación</h3>
+              <span class="badge lg ${claseBadgeEstatus(cot.estatus)}">${esc(cot.estatus)}</span>
+            </div>
+
+            ${itemsCot.length ? `
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr><th>Concepto</th><th>Cant.</th><th>P. Unitario</th><th>Importe</th></tr>
+                  </thead>
+                  <tbody>
+                    ${itemsCot.map(it => `
+                      <tr>
+                        <td>
+                          <span class="badge tipo-${it.tipo}">${it.tipo === 'refaccion' ? 'Refacción' : 'Mano de obra'}</span>
+                          <div style="margin-top:4px;font-weight:500">${esc(it.descripcion)}</div>
+                        </td>
+                        <td>${it.cantidad}</td>
+                        <td>${fmtMXN(it.precio)}</td>
+                        <td><b>${fmtMXN(it.importe)}</b></td>
+                      </tr>
+                    `).join('')}
+                  </tbody>
+                </table>
+              </div>
+            ` : `
+              <p>Total presupuestado: <b>${fmtMXN(cot.total)}</b></p>
+            `}
+
+            <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+              <div class="text-muted">
+                Subtotal: <b>${fmtMXN(cot.subtotal || cot.total)}</b> ·
+                IVA (${Number(cot.iva_porcentaje || 0)}%): <b>${fmtMXN(cot.iva_monto || 0)}</b>
+              </div>
+              <div style="font-size:20px;font-weight:700">Total: ${fmtMXN(cot.total)}</div>
+            </div>
+
+            ${cot.estatus === 'pendiente' ? `
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:20px">
+                <button class="ok lg" onclick="decidir(true)" style="width:100%;min-height:48px">Aprobar cotización</button>
+                <button class="no lg" onclick="decidir(false)" style="width:100%;min-height:48px">Rechazar cotización</button>
+              </div>
+            ` : ''}
+          ` : `
+            <div class="empty-state">
+              <h4 style="margin:0 0 4px 0">Aún no hay cotización registrada</h4>
+              <p style="margin:0;font-size:13px">En cuanto el técnico concluya la revisión, podrás consultar y autorizar tu presupuesto aquí.</p>
+            </div>
+          `}
+        </div>
+      </div>
+
+      <!-- SECCIÓN 3: CHAT EN TIEMPO REAL -->
+      <div id="cliPanel_chat" class="hidden">
+        <div class="chat-panel">
+          <div id="ch" class="chat">
+            ${(o.mensajes || []).length ? o.mensajes.map(m => `
+              <div class="m ${esc(m.emisor)}">
+                <b>${m.emisor === 'tecnico' ? 'Taller' : 'Tú'}:</b>
+                ${m.texto ? `<span>${esc(m.texto)}</span>` : ''}
+                ${m.archivo_url ? `<img class="chat-img" src="${esc(m.archivo_url)}" alt="Imagen adjunta" onclick="verFoto('${esc(m.archivo_url)}', '${esc(m.texto || '')}')">` : ''}
+                <small class="hora">${fmtFecha(m.fecha)}</small>
+              </div>
+            `).join('') : '<div class="empty-state"><p>Escribe una duda o comentario para el técnico.</p></div>'}
+          </div>
+
+          <div class="chat-composer">
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <input id="mt" placeholder="Escribe tu mensaje al taller..." style="flex:1;min-width:180px;min-height:44px" onkeydown="if(event.key==='Enter')enviar()">
+              <input id="mf" type="file" accept="image/*" capture="environment" style="max-width:190px" title="Adjuntar foto">
+              <button onclick="enviar()" style="min-height:44px">Enviar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    cambiarTabCliente(tabClienteActual);
+    const c = $('ch');
+    if (c) c.scrollTop = c.scrollHeight;
+
+    if (!ws) {
+      ws = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws/' + F);
+      ws.onmessage = () => consultar();
+    }
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = 'Ver estatus de mi equipo';
+    }
+  }
+}
+
+async function decidir(aprobar) {
+  await fetch(`/api/public/seguimiento/${encodeURIComponent(F)}/cotizacion?telefono=${encodeURIComponent(TEL)}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ aprobar })
+  });
+  consultar();
+}
+
+async function enviar() {
+  const texto = $('mt').value.trim();
+  const file = $('mf').files[0];
+  if (!texto && !file) return;
+  if (file) {
+    const fd = new FormData();
+    fd.append('texto', texto);
+    fd.append('archivo', file);
+    const r = await fetch(`/api/public/seguimiento/${encodeURIComponent(F)}/mensajes/foto?telefono=${encodeURIComponent(TEL)}`, {
+      method: 'POST',
+      body: fd
+    });
+    if (!r.ok) {
+      const e = await r.json().catch(() => ({}));
+      return alert(e.detail || 'Error al enviar imagen');
+    }
+  } else {
+    await fetch(`/api/public/seguimiento/${encodeURIComponent(F)}/mensajes?telefono=${encodeURIComponent(TEL)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ texto })
+    });
+  }
+  $('mt').value = '';
+  $('mf').value = '';
+  consultar();
+}
+</script>
+</body>
+</html>

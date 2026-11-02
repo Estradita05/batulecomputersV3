@@ -1,0 +1,2592 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>Panel Técnico y Recepción — Taller de Cómputo</title>
+  <link rel="stylesheet" href="estilos.css?v=3.0">
+</head>
+<body>
+
+<!-- ======================================================================
+     PANTALLA DE ACCESO (LOGIN MINIMALISTA DE 2 COLUMNAS)
+     ====================================================================== -->
+<div id="loginBox" class="auth-screen">
+  <div class="auth-shell">
+    <!-- Columna izquierda informativa -->
+    <div class="auth-aside">
+      <div>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+          <span style="width:32px;height:32px;border-radius:8px;background:var(--accent);color:#fff;display:inline-flex;align-items:center;justify-content:center">
+            <svg class="icon" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </span>
+          <span style="font-weight:700;font-size:15px;color:var(--text-main)">Taller de Cómputo</span>
+        </div>
+        <h2 style="font-size:20px;margin:0 0 6px 0">Sistema de control y recepción</h2>
+        <p style="font-size:13px;color:var(--text-muted);margin:0">
+          Plataforma interna para registro de clientes, órdenes de servicio, diagnóstico y cotizaciones.
+        </p>
+
+        <ul class="auth-features">
+          <li>
+            <span class="feat-icon">
+              <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            </span>
+            <div>
+              <strong style="color:var(--text-main);display:block">Directorio único de clientes</strong>
+              Diferenciación por teléfono de 10 dígitos y número de cliente consecutivo.
+            </div>
+          </li>
+          <li>
+            <span class="feat-icon">
+              <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+            </span>
+            <div>
+              <strong style="color:var(--text-main);display:block">Órdenes organizadas por etapas</strong>
+              Recepción en 3 pasos, evidencia fotográfica y firma digital de entrega.
+            </div>
+          </li>
+          <li>
+            <span class="feat-icon">
+              <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </span>
+            <div>
+              <strong style="color:var(--text-main);display:block">Comunicación en tiempo real</strong>
+              Cotizaciones con aprobación en línea y chat directo con el cliente.
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;padding-top:14px;border-top:1px solid var(--border);font-size:12px">
+        <a href="/" style="font-weight:500">Ir a consulta de clientes →</a>
+        <button type="button" class="ghost sm" onclick="alternarTema()" id="btnTemaLogin">Tema</button>
+      </div>
+    </div>
+
+    <!-- Columna derecha: Formulario de acceso -->
+    <div class="auth-form-panel">
+      <div style="margin-bottom:20px">
+        <span class="badge status-neutral" style="margin-bottom:8px">Acceso de personal</span>
+        <h1 style="font-size:20px;margin:0 0 4px 0">Iniciar sesión</h1>
+        <p style="font-size:13px;color:var(--text-muted);margin:0">Ingresa tus credenciales del taller para continuar.</p>
+      </div>
+
+      <div class="field" style="margin-bottom:14px">
+        <label for="em">Correo electrónico</label>
+        <input id="em" type="email" placeholder="nombre@taller.local" value="admin@taller.local" autocomplete="username">
+        <span id="errLoginEm" class="field-error">Ingresa tu correo electrónico</span>
+      </div>
+
+      <div class="field" style="margin-bottom:20px">
+        <label for="pw">Contraseña</label>
+        <input id="pw" type="password" placeholder="Ingresa tu contraseña" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()">
+        <span id="errLoginPw" class="field-error"></span>
+      </div>
+
+      <button id="btnLogin" onclick="login()" style="width:100%">Entrar al panel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======================================================================
+     SHELL PRINCIPAL DE LA APLICACIÓN (SIDEBAR + WORKSPACE)
+     ====================================================================== -->
+<div id="app" class="app-shell hidden">
+
+  <!-- Barra lateral fija en Escritorio/Tablet y Barra inferior en Móvil -->
+  <aside class="sidebar" aria-label="Navegación principal">
+    <div class="sidebar-brand">
+      <span class="brand-mark">
+        <svg class="icon" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      </span>
+      <div class="sidebar-brand-text">
+        <span class="sidebar-brand-title">Taller de Cómputo</span>
+        <span class="sidebar-brand-sub">Panel Técnico y Recepción</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-group-label">Operación</div>
+
+      <button id="navInicio" class="nav-item activo" onclick="irSeccion('inicio')">
+        <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>
+        <span>Inicio</span>
+      </button>
+
+      <button id="navEquipos" class="nav-item" onclick="irSeccion('equipos')">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
+        <span>Equipos</span>
+        <span id="badgeNavEquipos" class="nav-counter">0</span>
+      </button>
+
+      <button id="navNuevo" class="nav-item" onclick="irSeccion('nuevo')">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        <span>Nuevo equipo</span>
+      </button>
+
+      <button id="navClientes" class="nav-item" onclick="irSeccion('clientes')">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span>Clientes</span>
+        <span id="badgeNavClientes" class="nav-counter">0</span>
+      </button>
+
+      <div id="lblGrupoAdmin" class="nav-group-label hidden" style="margin-top:12px">Administración</div>
+
+      <button id="navUsuarios" class="nav-item hidden" onclick="irSeccion('usuarios')">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        <span>Configuración</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-pill">
+        <span id="usr" class="user-name"></span>
+        <span id="usrRol" class="badge"></span>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="sec sm" style="flex:1" onclick="alternarTema()" id="btnTemaSidebar" title="Cambiar entre modo claro, oscuro y automático">Tema</button>
+        <button class="sec sm" style="flex:1" onclick="abrirModalCambioPass(false)">Clave</button>
+        <button class="ghost sm" style="flex:1" onclick="salir()">Salir</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <div class="app-main">
+
+    <!-- Barra superior contextual en escritorio -->
+    <header class="workspace-topbar">
+      <div class="breadcrumb">
+        <span>Taller</span>
+        <span>/</span>
+        <strong id="topbarSeccionTitulo">Inicio</strong>
+      </div>
+
+      <div class="topbar-actions">
+        <div style="position:relative;width:250px">
+          <input id="qTopbar" placeholder="Buscar folio, cliente o serie..." style="min-height:34px;padding:5px 10px;font-size:13px" onkeydown="if(event.key==='Enter'){irSeccion('equipos');$('qBusqueda').value=this.value;listar();}">
+        </div>
+        <button class="sec sm" onclick="cargarDashboard();listar()" title="Actualizar datos">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Actualizar
+        </button>
+        <button id="btnTopbarNuevo" class="sm" onclick="irSeccion('nuevo')">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Nuevo equipo
+        </button>
+      </div>
+    </header>
+
+    <!-- Barra superior compacta solo para móvil -->
+    <div class="topbar-mobile">
+      <div style="display:flex;align-items:center;gap:8px;font-weight:600">
+        <svg class="icon" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        <span>Taller</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span id="usrMobile" class="text-muted"></span>
+        <button class="sec sm" onclick="alternarTema()">Tema</button>
+        <button class="sec sm" onclick="abrirModalCambioPass(false)">Clave</button>
+        <button class="ghost sm" onclick="salir()">Salir</button>
+      </div>
+    </div>
+
+    <div class="page-container">
+
+      <!-- ====================================================================
+           SECCIÓN 1: INICIO (RESUMEN OPERATIVO DEL TALLER)
+           ==================================================================== -->
+      <section id="secInicio">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Resumen operativo</h1>
+            <p class="page-subtitle">Indicadores principales, distribución por estatus y órdenes recientes</p>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="sec" onclick="irSeccion('clientes')">Directorio de clientes</button>
+            <button id="btnAtajoNuevo" onclick="irSeccion('nuevo')">
+              <svg class="icon icon-sm" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Registrar equipo
+            </button>
+          </div>
+        </div>
+
+        <!-- Tarjetas de KPIs -->
+        <div class="dash-kpis">
+          <div class="kpi-card kpi-ingresos">
+            <div class="kpi-label">
+              <span>Ingresos del mes</span>
+              <svg class="icon icon-sm" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+            <div id="kpiIngresos" class="kpi-val">$0.00</div>
+            <div class="kpi-foot">Pagos y anticipos registrados</div>
+          </div>
+
+          <div class="kpi-card" onclick="filtrarPorDashboard('Listo para entrega', false)" title="Ver equipos listos para entrega">
+            <div class="kpi-label">
+              <span>Listos para entrega</span>
+              <svg class="icon icon-sm" style="color:var(--status-success-fg)" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+            <div id="kpiListos" class="kpi-val" style="color:var(--status-success-fg)">0</div>
+            <div class="kpi-foot">Pendientes de recoger por el cliente</div>
+          </div>
+
+          <div class="kpi-card" onclick="filtrarPorDashboard('', true)" title="Ver equipos con fecha vencida">
+            <div class="kpi-label">
+              <span>Equipos retrasados</span>
+              <svg class="icon icon-sm" style="color:var(--status-danger-fg)" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+            <div id="kpiRetrasados" class="kpi-val" style="color:var(--status-danger-fg)">0</div>
+            <div class="kpi-foot">Con fecha estimada vencida</div>
+          </div>
+
+          <div class="kpi-card" onclick="limpiarFiltros();irSeccion('equipos')" title="Ver todas las órdenes">
+            <div class="kpi-label">
+              <span>Órdenes totales</span>
+              <svg class="icon icon-sm" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+            <div id="kpiTotal" class="kpi-val">0</div>
+            <div class="kpi-foot">Histórico acumulado en el taller</div>
+          </div>
+        </div>
+
+        <!-- Dos columnas: Distribución por estatus + Órdenes recientes -->
+        <div class="home-grid">
+          <div class="card" style="margin-bottom:0">
+            <div class="card-header">
+              <h3 class="card-title">Equipos por estatus</h3>
+              <span class="text-muted">Clic para filtrar</span>
+            </div>
+            <div id="chipsEstatus" class="estatus-chips"></div>
+          </div>
+
+          <div class="card" style="margin-bottom:0">
+            <div class="card-header">
+              <h3 class="card-title">Órdenes recientes</h3>
+              <button class="ghost sm" onclick="irSeccion('equipos')">Ver todas →</button>
+            </div>
+            <div id="inicioRecientesWrap"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           SECCIÓN 2: EQUIPOS (LISTA LIMPIA Y FILTROS)
+           ==================================================================== -->
+      <section id="secEquipos" class="hidden">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Equipos y órdenes de servicio</h1>
+            <p class="page-subtitle">Selecciona cualquier fila para abrir el expediente completo</p>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button id="btnIrNuevoDesdeLista" onclick="irSeccion('nuevo')">
+              <svg class="icon icon-sm" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Nuevo equipo
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="filtros-bar">
+            <div class="field span-2">
+              <label for="qBusqueda">Búsqueda rápida</label>
+              <input id="qBusqueda" placeholder="Folio, No. cliente (CLI-00001), nombre, teléfono o serie..." oninput="buscarConDebounce()">
+            </div>
+            <div class="field">
+              <label for="filtro">Estatus</label>
+              <select id="filtro" onchange="listar()"></select>
+            </div>
+            <div class="field">
+              <label for="filtroTecnico">Técnico</label>
+              <select id="filtroTecnico" onchange="listar()"></select>
+            </div>
+            <div class="field">
+              <label for="filtroDesde">Ingreso desde</label>
+              <input id="filtroDesde" type="date" onchange="listar()">
+            </div>
+            <div class="field">
+              <label for="filtroHasta">Ingreso hasta</label>
+              <input id="filtroHasta" type="date" onchange="listar()">
+            </div>
+            <div class="field" style="justify-content:flex-end">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:9px 0;font-weight:500;color:var(--text-main)">
+                <input id="filtroRetrasados" type="checkbox" style="width:16px;height:16px;min-height:16px" onchange="listar()">
+                Solo retrasados
+              </label>
+            </div>
+            <div>
+              <button class="sec sm" style="width:100%;min-height:40px" onclick="limpiarFiltros()">Limpiar filtros</button>
+            </div>
+          </div>
+
+          <div id="loadingOrdenes" class="loading-state hidden">
+            <span class="spinner"></span>
+            <span>Cargando órdenes...</span>
+          </div>
+
+          <div class="table-wrap">
+            <table id="tablaEquiposMain" class="responsive-table">
+              <thead>
+                <tr>
+                  <th>Folio</th>
+                  <th>Cliente</th>
+                  <th>Equipo</th>
+                  <th>Técnico</th>
+                  <th>Estatus</th>
+                  <th>Saldo</th>
+                  <th>Ingreso</th>
+                </tr>
+              </thead>
+              <tbody id="tb"></tbody>
+            </table>
+          </div>
+
+          <div id="emptyOrdenes" class="empty-state hidden">
+            <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            <h4 style="margin:0 0 4px 0">Aún no hay equipos para mostrar</h4>
+            <p style="margin:0 0 14px 0;font-size:13px">Registra un cliente y crea tu primera orden de servicio o ajusta los filtros de búsqueda.</p>
+            <button class="sec sm" onclick="irSeccion('nuevo')">Ir a Nuevo equipo</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           SECCIÓN 3: NUEVO EQUIPO (EN 3 BLOQUES SEPARADOS)
+           ==================================================================== -->
+      <section id="secNuevo" class="hidden">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Registrar nuevo equipo</h1>
+            <p class="page-subtitle">Completa los 3 bloques para generar el folio de servicio</p>
+          </div>
+          <button class="sec" onclick="irSeccion('equipos')">Volver a la lista</button>
+        </div>
+
+        <!-- Indicador de pasos -->
+        <div class="steps-bar">
+          <div class="step-pill"><span class="num">1</span> Cliente registrado</div>
+          <span class="step-divider">→</span>
+          <div class="step-pill"><span class="num">2</span> Identificación del equipo</div>
+          <span class="step-divider">→</span>
+          <div class="step-pill"><span class="num">3</span> Falla, accesorios y evidencia</div>
+        </div>
+
+        <!-- BLOQUE 1: CLIENTE -->
+        <div class="section-block">
+          <div class="section-block-header">
+            <span class="step-badge">1</span>
+            <div>
+              <h3 class="card-title">Cliente registrado</h3>
+              <small>Todo equipo requiere estar vinculado a un cliente del padrón</small>
+            </div>
+          </div>
+
+          <div class="form-grid cols-2" style="align-items:end">
+            <div class="field">
+              <label for="buscarCliOrden">Buscar cliente por número, teléfono o nombre</label>
+              <input id="buscarCliOrden" placeholder="Ej. CLI-00001, 5511223344 o Juan Pérez..." oninput="filtrarSelectorClientes()">
+            </div>
+            <div class="field">
+              <label for="selClienteOrden">Cliente seleccionado *</label>
+              <div style="display:flex;gap:8px">
+                <select id="selClienteOrden" onchange="alSeleccionarClienteOrden()" style="flex:1">
+                  <option value="">Selecciona un cliente registrado...</option>
+                </select>
+                <button type="button" class="sec" onclick="irSeccion('clientes')" title="Registrar un cliente nuevo">
+                  + Nuevo cliente
+                </button>
+              </div>
+              <span id="errCliOrden" class="field-error">Selecciona un cliente registrado</span>
+            </div>
+          </div>
+
+          <div id="infoClienteSeleccionado" class="hidden" style="margin-top:14px;padding:12px 16px;background:var(--accent-soft);border:1px solid var(--accent-border);border-radius:var(--radius-md);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+            <div>
+              <span id="lblCliNumero" class="badge status-neutral mono" style="margin-right:8px"></span>
+              <strong id="lblCliNombre" style="color:var(--text-main)"></strong>
+              <span id="lblCliTel" class="mono" style="margin-left:10px;color:var(--text-secondary)"></span>
+              <small id="lblCliCorreo" style="margin-left:10px"></small>
+            </div>
+            <button type="button" class="ghost sm" onclick="limpiarClienteSeleccionadoOrden()">Cambiar</button>
+          </div>
+        </div>
+
+        <!-- BLOQUE 2: EQUIPO -->
+        <div class="section-block">
+          <div class="section-block-header">
+            <span class="step-badge">2</span>
+            <div>
+              <h3 class="card-title">Identificación del equipo</h3>
+              <small>Selecciona la sección (Bajos, Medios o Altos) e ingresa manualmente el tipo de equipo y sus datos</small>
+            </div>
+          </div>
+
+          <!-- Selector de las 3 secciones (Bajos: 20000+, Medios: 2000+, Altos: 3000+) -->
+          <div class="sub-tabs" role="tablist" style="margin-top:0;margin-bottom:18px">
+            <button type="button" id="btnSec_bajos" class="sub-tab-btn activo" onclick="seleccionarSeccionEquipo('bajos')">
+              Bajos  <span class="badge status-neutral mono" style="margin-left:6px"></span>
+            </button>
+            <button type="button" id="btnSec_medios" class="sub-tab-btn" onclick="seleccionarSeccionEquipo('medios')">
+              Medios  <span class="badge status-neutral mono" style="margin-left:6px"></span>
+            </button>
+            <button type="button" id="btnSec_altos" class="sub-tab-btn" onclick="seleccionarSeccionEquipo('altos')">
+              Altos  <span class="badge status-neutral mono" style="margin-left:6px"></span>
+            </button>
+          </div>
+          <input type="hidden" id="secEquipoActual" value="bajos">
+
+          <div class="form-grid cols-3">
+            <div class="field">
+              <label for="tp">Tipo de equipo *</label>
+              <input id="tp" placeholder="Escribe manualmente el tipo de equipo o servicio...">
+              <span id="errTipoEquipo" class="field-error">Ingresa el tipo de equipo</span>
+            </div>
+            <div class="field">
+              <label for="mk">Marca</label>
+              <input id="mk" placeholder="Ej. HP, Dell, Lenovo, Epson">
+            </div>
+            <div class="field">
+              <label for="md">Modelo</label>
+              <input id="md" placeholder="Ej. Pavilion 15, L3250, Kingston">
+            </div>
+            <div class="field">
+              <label for="ns">Número de serie</label>
+              <input id="ns" class="mono" placeholder="Ej. 5CD1234XYZ">
+            </div>
+            <div class="field">
+              <label for="pe">Contraseña / PIN / Patrón del equipo</label>
+              <input id="pe" placeholder="Se almacena cifrada (Fernet)">
+            </div>
+            <div class="field">
+              <label for="iniTecnicos">Iniciales de técnicos que reciben *</label>
+              <input id="iniTecnicos" class="mono" placeholder="Ej. JPE, MRL" autocapitalize="characters" oninput="this.value = this.value.toUpperCase()">
+              <div id="sugerenciasInicialesTec" class="iniciales-chips"></div>
+              <span id="errIniTecnicos" class="field-error">Ingresa las iniciales de los técnicos que reciben</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- BLOQUE 3: FALLA, ACCESORIOS Y EVIDENCIA -->
+        <div class="section-block">
+          <div class="section-block-header">
+            <span class="step-badge">3</span>
+            <div>
+              <h3 class="card-title">Falla reportada, accesorios y evidencia</h3>
+              <small>Describe el problema detallado y adjunta fotografías de recepción si aplica</small>
+            </div>
+          </div>
+
+          <div class="form-grid cols-2">
+            <div class="field span-2">
+              <label for="fa">Descripción de la falla o servicio solicitado *</label>
+              <textarea id="fa" rows="3" placeholder="Describe qué síntoma presenta el equipo o qué servicio solicita el cliente..."></textarea>
+              <span id="errFallaOrden" class="field-error">Describe la falla que presenta el equipo</span>
+            </div>
+
+            <div class="field">
+              <label for="ac">Accesorios recibidos</label>
+              <input id="ac" placeholder="Ej. Cargador original, funda, cable USB (o Ninguno)">
+            </div>
+
+            <div class="field">
+              <label for="fe">Fecha estimada de entrega</label>
+              <input id="fe" type="date">
+            </div>
+          </div>
+
+          <div class="upload-box" style="margin-top:16px">
+            <label for="fotosRec" style="margin-bottom:8px">Fotografías de evidencia en recepción (opcional)</label>
+            <div class="form-grid cols-2">
+              <div class="field">
+                <input id="fotosRec" type="file" accept="image/*" capture="environment" multiple>
+              </div>
+              <div class="field">
+                <input id="fotosRecDesc" placeholder="Nota de la evidencia (ej. Rayón en carcasa, esquina golpeada)">
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+            <button type="button" class="sec" onclick="irSeccion('equipos')">Cancelar</button>
+            <button id="btnCrear" type="button" onclick="crear()">Generar folio de entrada</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           SECCIÓN 4: DETALLE DE ORDEN (ENCABEZADO + 4 PESTAÑAS)
+           ==================================================================== -->
+      <section id="secDetalle" class="hidden">
+        <div style="margin-bottom:12px">
+          <button class="ghost sm" onclick="irSeccion('equipos')">
+            <svg class="icon icon-sm" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Volver a Equipos
+          </button>
+        </div>
+        <div id="det"></div>
+      </section>
+
+      <!-- ====================================================================
+           SECCIÓN 5: CLIENTES (ALTA SIN DUPLICADOS + DIRECTORIO)
+           ==================================================================== -->
+      <section id="secClientes" class="hidden">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Directorio de clientes</h1>
+            <p class="page-subtitle">Cada cliente se identifica por su teléfono único de 10 dígitos y recibe un número consecutivo</p>
+          </div>
+          <button class="sec" onclick="cargarClientes()">
+            <svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+            Actualizar
+          </button>
+        </div>
+
+        <!-- Alta de cliente -->
+        <div id="boxCrearCliente" class="card">
+          <div class="card-header">
+            <h3 class="card-title">Registrar nuevo cliente</h3>
+          </div>
+          <div class="form-grid cols-3">
+            <div class="field">
+              <label for="cliNombre">Nombre completo *</label>
+              <input id="cliNombre" placeholder="Ej. María López Hernández">
+              <span id="errCliNombre" class="field-error">Ingresa el nombre completo</span>
+            </div>
+            <div class="field">
+              <label for="cliTelefono">Teléfono (10 dígitos, único) *</label>
+              <input id="cliTelefono" type="tel" maxlength="14" placeholder="Ej. 5512345678">
+              <span id="errCliTel" class="field-error">El teléfono debe tener 10 dígitos</span>
+            </div>
+            <div class="field">
+              <label for="cliCorreo">Correo electrónico (opcional)</label>
+              <input id="cliCorreo" type="email" placeholder="cliente@correo.com">
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
+            <button id="btnGuardarCliente" class="sec" onclick="crearCliente(false)">Guardar cliente</button>
+            <button onclick="crearCliente(true)">Guardar cliente y registrar equipo</button>
+          </div>
+        </div>
+
+        <!-- Listado de clientes -->
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:end;flex-wrap:wrap;gap:12px;margin-bottom:16px">
+            <div class="field" style="flex:1;min-width:260px">
+              <label for="qClientes">Buscar en el padrón</label>
+              <input id="qClientes" placeholder="Buscar por CLI-00001, teléfono, nombre o correo..." oninput="buscarClientesConDebounce()">
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table class="responsive-table">
+              <thead>
+                <tr>
+                  <th>No. Cliente</th>
+                  <th>Nombre</th>
+                  <th>Teléfono (único)</th>
+                  <th>Correo</th>
+                  <th>Órdenes</th>
+                  <th>Registro</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tablaClientes"></tbody>
+            </table>
+          </div>
+
+          <div id="emptyClientes" class="empty-state hidden">
+            <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            <h4 style="margin:0 0 4px 0">Aún no hay clientes registrados</h4>
+            <p style="margin:0;font-size:13px">Usa el formulario superior para dar de alta al primer cliente del taller.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           SECCIÓN 6: CONFIGURACIÓN / USUARIOS (SOLO ADMIN)
+           ==================================================================== -->
+      <section id="secUsuarios" class="hidden">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Configuración del sistema</h1>
+            <p class="page-subtitle">Administración de cuentas del personal y plantillas de respuesta rápida</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Agregar usuario del personal</h3>
+          </div>
+          <div class="form-grid cols-3">
+            <div class="field">
+              <label for="uNombre">Nombre completo *</label>
+              <input id="uNombre" placeholder="Ej. Carlos Méndez">
+            </div>
+            <div class="field">
+              <label for="uEmail">Correo electrónico *</label>
+              <input id="uEmail" type="email" placeholder="carlos@taller.local">
+            </div>
+            <div class="field">
+              <label for="uRol">Rol en el sistema *</label>
+              <select id="uRol">
+                <option value="tecnico">Técnico</option>
+                <option value="recepcion">Recepción</option>
+                <option value="admin">Administrador</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="uPass">Contraseña temporal *</label>
+              <input id="uPass" type="password" placeholder="Mínimo 6 caracteres">
+            </div>
+            <div class="field" style="justify-content:flex-end">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;padding:9px 0;font-weight:500;color:var(--text-main)">
+                <input id="uForzar" type="checkbox" checked style="width:16px;height:16px;min-height:16px">
+                Pedir cambio de clave al iniciar
+              </label>
+            </div>
+            <div class="field" style="justify-content:flex-end">
+              <button onclick="crearUsuario()">Crear usuario</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Personal registrado</h3>
+            <button class="sec sm" onclick="cargarUsuarios()">Actualizar</button>
+          </div>
+          <div class="table-wrap">
+            <table class="responsive-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Nombre</th>
+                  <th>Correo</th>
+                  <th>Rol</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tablaUsuarios"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <h3 class="card-title">Plantillas de respuesta rápida (Chat)</h3>
+              <small>Mensajes predefinidos para agilizar la atención al cliente</small>
+            </div>
+          </div>
+          <div class="form-grid cols-3" style="align-items:end;margin-bottom:16px">
+            <div class="field">
+              <label for="rrTitulo">Título corto del botón</label>
+              <input id="rrTitulo" placeholder="Ej. Equipo listo">
+            </div>
+            <div class="field">
+              <label for="rrTexto">Texto completo del mensaje</label>
+              <input id="rrTexto" placeholder="Ej. Hola, tu equipo ya está listo para pasar a recogerlo.">
+            </div>
+            <div>
+              <button onclick="crearRespuestaRapida()">Agregar plantilla</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="responsive-table">
+              <thead>
+                <tr>
+                  <th>Botón</th>
+                  <th>Mensaje</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tablaRespuestasRapidas"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<!-- ======================================================================
+     MODALES DEL SISTEMA
+     ====================================================================== -->
+
+<!-- Modal: Cambio de contraseña -->
+<div id="modalPass" class="modal-backdrop hidden">
+  <div class="modal-card">
+    <h3 id="tituloModalPass" style="margin-top:0">Cambiar mi contraseña</h3>
+    <p id="avisoForzarPass" class="hidden" style="color:var(--status-warning-fg);font-size:13px">
+      Por seguridad, debes elegir una contraseña nueva antes de continuar.
+    </p>
+    <div class="field" style="margin-bottom:12px">
+      <label for="passActual">Contraseña actual</label>
+      <input id="passActual" type="password" placeholder="Ingresa tu contraseña actual">
+    </div>
+    <div class="field" style="margin-bottom:12px">
+      <label for="passNueva">Nueva contraseña (mínimo 6 caracteres)</label>
+      <input id="passNueva" type="password" placeholder="Nueva contraseña">
+    </div>
+    <div class="field" style="margin-bottom:16px">
+      <label for="passConfirmar">Confirmar nueva contraseña</label>
+      <input id="passConfirmar" type="password" placeholder="Repite la nueva contraseña">
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button id="btnCancelarModalPass" class="sec" onclick="cerrarModalCambioPass()">Cancelar</button>
+      <button onclick="guardarCambioPass()">Actualizar contraseña</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Presupuesto inicial / Anticipo tras crear folio -->
+<div id="modalRecepcionCot" class="modal-backdrop hidden">
+  <div class="modal-card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <span class="badge status-green">Folio generado</span>
+      <span id="lblFolioCreado" class="mono" style="font-weight:700;font-size:15px"></span>
+    </div>
+    <h3 style="margin:0 0 4px 0">Presupuesto inicial y anticipo (opcional)</h3>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px">
+      Si el cliente deja anticipo o acordaste un costo preliminar en recepción, regístralo aquí antes de imprimir el comprobante.
+    </p>
+    <div class="form-grid cols-2">
+      <div class="field">
+        <label for="recManoObra">Mano de obra ($ MXN)</label>
+        <input id="recManoObra" type="number" step="0.01" min="0" value="0" oninput="recalcularModalRecepcion()">
+      </div>
+      <div class="field">
+        <label for="recRefacciones">Refacciones ($ MXN)</label>
+        <input id="recRefacciones" type="number" step="0.01" min="0" value="0" oninput="recalcularModalRecepcion()">
+      </div>
+      <div class="field">
+        <label for="recIva">IVA (%)</label>
+        <select id="recIva" onchange="recalcularModalRecepcion()">
+          <option value="0">0% (Sin IVA)</option>
+          <option value="16">16% (Con IVA)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Total estimado</label>
+        <input id="recTotalVista" disabled value="$0.00" style="font-weight:700">
+      </div>
+      <div class="field">
+        <label for="recAnticipo">Anticipo recibido hoy ($ MXN)</label>
+        <input id="recAnticipo" type="number" step="0.01" min="0" value="0" oninput="recalcularModalRecepcion()">
+      </div>
+      <div class="field">
+        <label for="recMetodo">Método de pago</label>
+        <select id="recMetodo">
+          <option value="efectivo">Efectivo</option>
+          <option value="transferencia">Transferencia</option>
+          <option value="tarjeta">Tarjeta</option>
+        </select>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px;flex-wrap:wrap">
+      <button class="sec" onclick="finalizarRecepcion(false, true)">Omitir e imprimir ticket</button>
+      <button class="ghost" onclick="finalizarRecepcion(false, false)">Solo cerrar</button>
+      <button onclick="finalizarRecepcion(true, true)">Guardar e imprimir ticket</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Entrega de equipo con firma digital -->
+<div id="modalEntrega" class="modal-backdrop hidden">
+  <div class="modal-card">
+    <h3 style="margin-top:0">Entrega de equipo — <span id="lblFolioEntrega" class="mono"></span></h3>
+    <div id="resumenSaldoEntrega" class="saldo-resumen"></div>
+
+    <div id="boxLiquidarSaldo" class="hidden" style="background:var(--status-warning-bg);border:1px solid var(--status-warning-border);padding:12px;border-radius:var(--radius-md);margin-bottom:14px">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--status-warning-fg)">
+        <input id="chkLiquidarEnEntrega" type="checkbox" checked style="width:16px;height:16px;min-height:16px">
+        Registrar cobro del saldo pendiente (<span id="lblMontoLiquidar"></span>) en este momento
+      </label>
+      <div class="field" style="margin-top:8px">
+        <label for="metodoLiquidarEntrega">Método de pago del saldo</label>
+        <select id="metodoLiquidarEntrega">
+          <option value="efectivo">Efectivo</option>
+          <option value="transferencia">Transferencia</option>
+          <option value="tarjeta">Tarjeta</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-grid cols-2" style="margin-bottom:12px">
+      <div class="field">
+        <label for="entRecibe">Nombre de quien recibe *</label>
+        <input id="entRecibe" placeholder="Nombre completo del cliente">
+      </div>
+      <div class="field">
+        <label for="entNota">Nota de entrega / Garantía</label>
+        <input id="entNota" placeholder="Ej. Se entrega probado y funcionando">
+      </div>
+    </div>
+
+    <div class="field" style="margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <label>Firma de conformidad del cliente *</label>
+        <button type="button" class="ghost sm" onclick="limpiarFirmaCanvas()">Limpiar trazo</button>
+      </div>
+      <canvas id="canvasFirma" class="firma-canvas" width="500" height="160"></canvas>
+    </div>
+
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="sec" onclick="cerrarModalEntrega()">Cancelar</button>
+      <button class="ok" onclick="confirmarEntregaEquipo()">Confirmar entrega</button>
+    </div>
+  </div>
+</div>
+
+<!-- Lightbox para fotografías -->
+<div id="lightbox" class="lightbox hidden" onclick="cerrarLightbox()">
+  <button class="cerrar" onclick="cerrarLightbox()" aria-label="Cerrar visor">✕</button>
+  <img id="lbImg" src="" alt="Evidencia" onclick="event.stopPropagation()">
+  <div id="lbCap" class="caption"></div>
+</div>
+
+<script>
+let T = localStorage.getItem('t');
+let ws = null;
+let usuarioLogueado = null;
+let seccionActual = 'inicio';
+let tabDetalleActual = 'resumen';
+let actual = null;
+let ordenActualObj = null;
+let etapaFiltro = 'todas';
+let itemsCotizacionTemp = [];
+let folioRecienCreado = null;
+let claveRevelada = null;
+let listaTecnicos = [];
+let listaRespuestasRapidas = [];
+let listaClientesRegistrados = [];
+let ultimasOrdenesCargadas = [];
+let timerBusqueda = null;
+let timerBusquedaClientes = null;
+
+const $ = s => document.getElementById(s);
+const ETIQUETAS_ETAPA = { recepcion: 'Recepción', proceso: 'En proceso', entrega: 'Entrega' };
+const ETIQUETAS_ROL = { admin: 'Administrador', recepcion: 'Recepción', tecnico: 'Técnico' };
+const TITULOS_SECCION = {
+  inicio: 'Resumen operativo',
+  equipos: 'Equipos y órdenes',
+  nuevo: 'Nuevo equipo',
+  detalle: 'Expediente de orden',
+  clientes: 'Directorio de clientes',
+  usuarios: 'Configuración'
+};
+
+// ---------- Gestión de Tema (Auto / Claro / Oscuro) ----------
+function aplicarTemaGuardado() {
+  const t = localStorage.getItem('tema_ui') || 'auto';
+  if (t === 'light' || t === 'dark') {
+    document.documentElement.setAttribute('data-theme', t);
+  } else {
+    document.documentElement.removeAttribute('data-theme');
+  }
+  const etiqueta = t === 'light' ? 'Tema: Claro' : t === 'dark' ? 'Tema: Oscuro' : 'Tema: Auto';
+  if ($('btnTemaSidebar')) $('btnTemaSidebar').textContent = etiqueta;
+  if ($('btnTemaLogin')) $('btnTemaLogin').textContent = etiqueta;
+}
+
+function alternarTema() {
+  const actualTema = localStorage.getItem('tema_ui') || 'auto';
+  const siguiente = actualTema === 'auto' ? 'dark' : actualTema === 'dark' ? 'light' : 'auto';
+  localStorage.setItem('tema_ui', siguiente);
+  aplicarTemaGuardado();
+}
+aplicarTemaGuardado();
+
+const esc = s => (s ?? '').toString().replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+const fmtFecha = d => {
+  if (!d) return '—';
+  try {
+    return new Date(d).toLocaleString('es-MX', {
+      timeZone: 'America/Mexico_City',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  } catch (e) {
+    return String(d);
+  }
+};
+
+const fmtMXN = n => {
+  const num = Number(n || 0);
+  return num.toLocaleString('es-MX', { style: 'currency', currency: 'MXN', minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+
+function claseBadgeEstatus(estatus) {
+  const e = (estatus || '').toLowerCase();
+  if (e.includes('listo') || e.includes('entregado') || e === 'aprobada') return 'status-green';
+  if (e.includes('diagnóstico') || e.includes('cotización') || e.includes('aprobación') || e.includes('refacción') || e === 'pendiente') return 'status-amber';
+  if (e.includes('cancelado') || e.includes('no reparable') || e === 'rechazada') return 'status-red';
+  return 'status-neutral';
+}
+
+function mostrarErrorCampo(idInput, idErr, mensaje) {
+  const inp = $(idInput);
+  const err = $(idErr);
+  if (inp) inp.classList.add('input-error');
+  if (err) {
+    if (mensaje) err.textContent = mensaje;
+    err.classList.add('visible');
+  }
+}
+
+function limpiarErrorCampo(idInput, idErr) {
+  const inp = $(idInput);
+  const err = $(idErr);
+  if (inp) inp.classList.remove('input-error');
+  if (err) err.classList.remove('visible');
+}
+
+async function api(p, m = 'GET', b) {
+  const r = await fetch('/api' + p, {
+    method: m,
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + T },
+    body: b ? JSON.stringify(b) : undefined
+  });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) {
+    if (r.status === 401) salir();
+    const msg = j.detail?.[0]?.msg || j.detail || 'Error en la operación';
+    alert(msg);
+    throw new Error(msg);
+  }
+  return j;
+}
+
+async function apiForm(p, formData) {
+  const r = await fetch('/api' + p, {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + T },
+    body: formData
+  });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) {
+    if (r.status === 401) salir();
+    const msg = j.detail?.[0]?.msg || j.detail || 'Error al subir archivo';
+    alert(msg);
+    throw new Error(msg);
+  }
+  return j;
+}
+
+async function login() {
+  limpiarErrorCampo('em', 'errLoginEm');
+  limpiarErrorCampo('pw', 'errLoginPw');
+  const email = $('em').value.trim();
+  const password = $('pw').value;
+  if (!email) return mostrarErrorCampo('em', 'errLoginEm', 'Ingresa tu correo electrónico');
+  if (!password) return mostrarErrorCampo('pw', 'errLoginPw', 'Ingresa tu contraseña');
+
+  const btn = $('btnLogin');
+  btn.disabled = true;
+  btn.textContent = 'Verificando...';
+  try {
+    const r = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      mostrarErrorCampo('pw', 'errLoginPw', j.detail || 'Credenciales incorrectas');
+      return;
+    }
+    T = j.token;
+    localStorage.setItem('t', T);
+    $('pw').value = '';
+    await iniciar();
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Entrar al panel';
+  }
+}
+
+function salir() {
+  localStorage.removeItem('t');
+  location.reload();
+}
+
+async function iniciar() {
+  try {
+    usuarioLogueado = await api('/auth/me');
+  } catch (e) {
+    return salir();
+  }
+
+  $('loginBox').classList.add('hidden');
+  $('app').classList.remove('hidden');
+
+  $('usr').textContent = usuarioLogueado.nombre;
+  if ($('usrMobile')) $('usrMobile').textContent = usuarioLogueado.nombre;
+  const badgeRol = $('usrRol');
+  badgeRol.textContent = ETIQUETAS_ROL[usuarioLogueado.rol] || usuarioLogueado.rol;
+  badgeRol.className = `badge rol-${usuarioLogueado.rol}`;
+
+  const rol = usuarioLogueado.rol;
+  const puedeCrearOrden = rol === 'admin' || rol === 'recepcion';
+  $('navUsuarios').classList.toggle('hidden', rol !== 'admin');
+  if ($('lblGrupoAdmin')) $('lblGrupoAdmin').classList.toggle('hidden', rol !== 'admin');
+  $('navNuevo').classList.toggle('hidden', !puedeCrearOrden);
+  $('btnAtajoNuevo').classList.toggle('hidden', !puedeCrearOrden);
+  if ($('btnTopbarNuevo')) $('btnTopbarNuevo').classList.toggle('hidden', !puedeCrearOrden);
+  $('btnIrNuevoDesdeLista').classList.toggle('hidden', !puedeCrearOrden);
+  $('boxCrearCliente').classList.toggle('hidden', !puedeCrearOrden);
+
+  if (usuarioLogueado.forzar_cambio_password) {
+    abrirModalCambioPass(true);
+    return;
+  }
+
+  const [est, tecnicos, rrs, clientes] = await Promise.all([
+    api('/estatus'),
+    api('/usuarios/tecnicos'),
+    api('/respuestas-rapidas'),
+    api('/clientes')
+  ]);
+  listaTecnicos = tecnicos || [];
+  listaRespuestasRapidas = rrs || [];
+  listaClientesRegistrados = clientes || [];
+  if ($('badgeNavClientes')) $('badgeNavClientes').textContent = listaClientesRegistrados.length;
+  renderSelectorClientesOrden();
+
+  $('filtro').innerHTML = '<option value="">Todos los estatus</option>' + est.map(x => `<option>${esc(x)}</option>`).join('');
+  $('filtroTecnico').innerHTML = '<option value="">Todos los técnicos</option>' +
+    listaTecnicos.map(t => `<option value="${t.id}">${esc(t.nombre)}</option>`).join('');
+  renderSugerenciasIniciales();
+
+  await Promise.all([cargarDashboard(), listar()]);
+}
+
+function obtenerInicialesDeNombre(nombre) {
+  const partes = (nombre || '').trim().split(/\s+/).filter(Boolean);
+  if (!partes.length) return '';
+  if (partes.length === 1) return partes[0].slice(0, 3).toUpperCase();
+  return partes.map(p => p[0]).join('').toUpperCase();
+}
+
+function agregarInicialTecnico(ini) {
+  const inp = $('iniTecnicos');
+  if (!inp || !ini) return;
+  const actuales = inp.value
+    .split(/[,/]+/)
+    .map(s => s.trim().toUpperCase())
+    .filter(Boolean);
+  if (!actuales.includes(ini.toUpperCase())) {
+    actuales.push(ini.toUpperCase());
+  }
+  inp.value = actuales.join(', ');
+}
+
+function renderSugerenciasIniciales() {
+  const cont = $('sugerenciasInicialesTec');
+  if (!cont) return;
+  const chips = listaTecnicos.map(t => {
+    const ini = obtenerInicialesDeNombre(t.nombre);
+    return `<button type="button" class="chip-inicial" onclick="agregarInicialTecnico('${esc(ini)}')" title="Agregar iniciales de ${esc(t.nombre)}">+ ${esc(ini)} (${esc(t.nombre)})</button>`;
+  });
+  cont.innerHTML = chips.join('');
+}
+
+function irSeccion(sec) {
+  seccionActual = sec;
+  const mapa = {
+    inicio: 'secInicio',
+    equipos: 'secEquipos',
+    nuevo: 'secNuevo',
+    detalle: 'secDetalle',
+    clientes: 'secClientes',
+    usuarios: 'secUsuarios'
+  };
+  Object.entries(mapa).forEach(([clave, idDom]) => {
+    const el = $(idDom);
+    if (el) el.classList.toggle('hidden', clave !== sec);
+  });
+
+  if ($('topbarSeccionTitulo')) {
+    $('topbarSeccionTitulo').textContent = TITULOS_SECCION[sec] || 'Inicio';
+  }
+
+  const navMap = {
+    inicio: 'navInicio',
+    equipos: 'navEquipos',
+    detalle: 'navEquipos',
+    nuevo: 'navNuevo',
+    clientes: 'navClientes',
+    usuarios: 'navUsuarios'
+  };
+  ['navInicio', 'navEquipos', 'navNuevo', 'navClientes', 'navUsuarios'].forEach(idBtn => {
+    const b = $(idBtn);
+    if (b) b.classList.toggle('activo', idBtn === navMap[sec]);
+  });
+
+  if (sec === 'inicio') {
+    cargarDashboard();
+    listar();
+  } else if (sec === 'equipos') {
+    listar();
+  } else if (sec === 'clientes') {
+    cargarClientes();
+  } else if (sec === 'usuarios') {
+    cargarUsuarios();
+    cargarRespuestasRapidasAdmin();
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ---------- Sección 1: Inicio (Dashboard) ----------
+async function cargarDashboard() {
+  const d = await api('/dashboard');
+  $('kpiIngresos').textContent = fmtMXN(d.ingresos_mes);
+  $('kpiListos').textContent = d.listos_sin_recoger;
+  $('kpiRetrasados').textContent = d.retrasados;
+  $('kpiTotal').textContent = d.total_ordenes;
+
+  const porEst = d.por_estatus || [];
+  if (!porEst.length) {
+    $('chipsEstatus').innerHTML = '<p class="text-muted" style="margin:0">Aún no hay equipos registrados en el sistema.</p>';
+  } else {
+    $('chipsEstatus').innerHTML = porEst.map(item => `
+      <button type="button" class="chip-est" onclick="filtrarPorDashboard('${esc(item.estatus)}', false)">
+        <span>${esc(item.estatus)}</span>
+        <b>${item.cantidad}</b>
+      </button>
+    `).join('');
+  }
+}
+
+function renderRecientesEnInicio(lista) {
+  const wrap = $('inicioRecientesWrap');
+  if (!wrap) return;
+  if (!lista || !lista.length) {
+    wrap.innerHTML = `
+      <div class="empty-state" style="padding:20px 12px">
+        <p style="margin:0 0 10px 0;font-size:13px">No hay órdenes registradas todavía.</p>
+        <button class="sec sm" onclick="irSeccion('clientes')">1. Registrar cliente</button>
+      </div>
+    `;
+    return;
+  }
+  const top5 = lista.slice(0, 5);
+  wrap.innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Folio</th>
+            <th>Cliente</th>
+            <th>Equipo</th>
+            <th>Estatus</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${top5.map(r => `
+            <tr class="fila" onclick="abrir('${esc(r.folio)}')">
+              <td><span class="mono" style="font-weight:600">${esc(r.folio)}</span></td>
+              <td>
+                <div style="font-weight:500">${esc(r.cliente)}</div>
+                <small class="mono">${esc(r.numero_cliente || '')}</small>
+              </td>
+              <td>${esc(r.tipo)} ${esc(r.marca || '')}</td>
+              <td><span class="badge ${claseBadgeEstatus(r.estatus)}">${esc(r.estatus)}</span></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function filtrarPorDashboard(est, soloRetrasados) {
+  $('filtro').value = est || '';
+  $('filtroRetrasados').checked = !!soloRetrasados;
+  irSeccion('equipos');
+}
+
+function limpiarFiltros() {
+  $('qBusqueda').value = '';
+  if ($('qTopbar')) $('qTopbar').value = '';
+  $('filtro').value = '';
+  $('filtroTecnico').value = '';
+  $('filtroDesde').value = '';
+  $('filtroHasta').value = '';
+  $('filtroRetrasados').checked = false;
+  listar();
+}
+
+function buscarConDebounce() {
+  if (timerBusqueda) clearTimeout(timerBusqueda);
+  timerBusqueda = setTimeout(() => listar(), 180);
+}
+
+// ---------- Cambio de contraseña ----------
+function abrirModalCambioPass(forzado) {
+  $('passActual').value = '';
+  $('passNueva').value = '';
+  $('passConfirmar').value = '';
+  $('avisoForzarPass').classList.toggle('hidden', !forzado);
+  $('btnCancelarModalPass').classList.toggle('hidden', !!forzado);
+  $('modalPass').classList.remove('hidden');
+}
+
+function cerrarModalCambioPass() {
+  $('modalPass').classList.add('hidden');
+}
+
+async function guardarCambioPass() {
+  const pAct = $('passActual').value;
+  const pNue = $('passNueva').value;
+  const pCon = $('passConfirmar').value;
+  if (!pAct || !pNue) return alert('Completa todos los campos');
+  if (pNue.length < 6) return alert('La nueva contraseña debe tener al menos 6 caracteres');
+  if (pNue !== pCon) return alert('La confirmación no coincide');
+
+  await api('/auth/cambiar-password', 'POST', {
+    password_actual: pAct,
+    password_nuevo: pNue
+  });
+  alert('Contraseña actualizada correctamente');
+  cerrarModalCambioPass();
+  await iniciar();
+}
+
+// ---------- Sección 6: Usuarios y Respuestas Rápidas (Admin) ----------
+async function cargarUsuarios() {
+  const us = await api('/usuarios');
+  const temp = await api('/usuarios/tecnicos');
+  listaTecnicos = temp || [];
+  $('tablaUsuarios').innerHTML = us.map(u => `
+    <tr>
+      <td data-label="ID" class="mono">${u.id}</td>
+      <td data-label="Nombre"><input id="un_${u.id}" value="${esc(u.nombre)}" style="min-width:140px"></td>
+      <td data-label="Correo"><input id="ue_${u.id}" value="${esc(u.email)}" style="min-width:160px"></td>
+      <td data-label="Rol">
+        <select id="ur_${u.id}">
+          <option value="tecnico" ${u.rol === 'tecnico' ? 'selected' : ''}>Técnico</option>
+          <option value="recepcion" ${u.rol === 'recepcion' ? 'selected' : ''}>Recepción</option>
+          <option value="admin" ${u.rol === 'admin' ? 'selected' : ''}>Administrador</option>
+        </select>
+      </td>
+      <td data-label="Estado">
+        <span class="badge ${u.activo ? 'status-green' : 'status-red'}">${u.activo ? 'Activo' : 'Inactivo'}</span>
+      </td>
+      <td data-label="Acciones" style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="sm" onclick="guardarEdicionUsuario(${u.id})">Guardar</button>
+        <button class="sec sm" onclick="resetearPasswordUsuario(${u.id}, '${esc(u.nombre)}')">Clave</button>
+        <button class="${u.activo ? 'no' : 'ok'} sm" onclick="alternarActivoUsuario(${u.id}, ${!u.activo})">
+          ${u.activo ? 'Desactivar' : 'Activar'}
+        </button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function crearUsuario() {
+  const nombre = $('uNombre').value.trim();
+  const email = $('uEmail').value.trim();
+  const rol = $('uRol').value;
+  const password = $('uPass').value;
+  const forzar = $('uForzar').checked;
+  if (!nombre || !email || password.length < 6) {
+    return alert('Ingresa nombre, correo y una contraseña de al menos 6 caracteres');
+  }
+  await api('/usuarios', 'POST', { nombre, email, password, rol, forzar_cambio_password: forzar });
+  $('uNombre').value = '';
+  $('uEmail').value = '';
+  $('uPass').value = '';
+  cargarUsuarios();
+}
+
+async function guardarEdicionUsuario(id) {
+  const nombre = $(`un_${id}`).value.trim();
+  const email = $(`ue_${id}`).value.trim();
+  const rol = $(`ur_${id}`).value;
+  await api(`/usuarios/${id}`, 'PATCH', { nombre, email, rol });
+  cargarUsuarios();
+}
+
+async function alternarActivoUsuario(id, nuevoEstado) {
+  if (!confirm(nuevoEstado ? '¿Reactivar este usuario?' : '¿Desactivar este usuario?')) return;
+  await api(`/usuarios/${id}`, 'PATCH', { activo: nuevoEstado });
+  cargarUsuarios();
+}
+
+async function resetearPasswordUsuario(id, nombre) {
+  const nueva = prompt(`Nueva contraseña temporal para ${nombre} (mín. 6 caracteres):`);
+  if (!nueva) return;
+  if (nueva.trim().length < 6) return alert('La contraseña debe tener al menos 6 caracteres');
+  await api(`/usuarios/${id}/reset-password`, 'POST', { password_nuevo: nueva.trim(), forzar_cambio: true });
+  cargarUsuarios();
+}
+
+async function cargarRespuestasRapidasAdmin() {
+  const rrs = await api('/respuestas-rapidas?todas=true');
+  listaRespuestasRapidas = rrs.filter(r => r.activo);
+  $('tablaRespuestasRapidas').innerHTML = rrs.map(r => `
+    <tr>
+      <td data-label="Botón" style="width:200px"><input id="rr_t_${r.id}" value="${esc(r.titulo)}"></td>
+      <td data-label="Mensaje"><input id="rr_x_${r.id}" value="${esc(r.texto)}"></td>
+      <td data-label="Acciones" style="width:180px;display:flex;gap:6px">
+        <button class="sm" onclick="guardarRespuestaRapida(${r.id}, ${r.activo})">Guardar</button>
+        <button class="no sm" onclick="eliminarRespuestaRapida(${r.id})">Eliminar</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+async function crearRespuestaRapida() {
+  const titulo = $('rrTitulo').value.trim();
+  const texto = $('rrTexto').value.trim();
+  if (!titulo || !texto) return alert('Ingresa título y mensaje');
+  await api('/respuestas-rapidas', 'POST', { titulo, texto });
+  $('rrTitulo').value = '';
+  $('rrTexto').value = '';
+  await cargarRespuestasRapidasAdmin();
+}
+
+async function guardarRespuestaRapida(id, activo) {
+  const titulo = $(`rr_t_${id}`).value.trim();
+  const texto = $(`rr_x_${id}`).value.trim();
+  await api(`/respuestas-rapidas/${id}`, 'PUT', { titulo, texto, activo });
+  await cargarRespuestasRapidasAdmin();
+}
+
+async function eliminarRespuestaRapida(id) {
+  if (!confirm('¿Eliminar esta plantilla de respuesta rápida?')) return;
+  await api(`/respuestas-rapidas/${id}`, 'DELETE');
+  await cargarRespuestasRapidasAdmin();
+}
+
+// ---------- Sección 5: Clientes (Padrón Único por Teléfono) ----------
+function buscarClientesConDebounce() {
+  if (timerBusquedaClientes) clearTimeout(timerBusquedaClientes);
+  timerBusquedaClientes = setTimeout(() => cargarClientes(), 180);
+}
+
+async function cargarClientes() {
+  const q = ($('qClientes')?.value || '').trim();
+  const qs = q ? `?q=${encodeURIComponent(q)}` : '';
+  const clientes = await api('/clientes' + qs);
+  if (!q) {
+    listaClientesRegistrados = clientes || [];
+    if ($('badgeNavClientes')) $('badgeNavClientes').textContent = listaClientesRegistrados.length;
+    renderSelectorClientesOrden();
+  }
+  const puedeEditar = usuarioLogueado && (usuarioLogueado.rol === 'admin' || usuarioLogueado.rol === 'recepcion');
+  const tbCli = $('tablaClientes');
+  const emptyCli = $('emptyClientes');
+  if (!clientes.length) {
+    tbCli.innerHTML = '';
+    emptyCli.classList.remove('hidden');
+    return;
+  }
+  emptyCli.classList.add('hidden');
+  tbCli.innerHTML = clientes.map(c => `
+    <tr>
+      <td data-label="No. Cliente"><span class="badge status-neutral mono">${esc(c.numero_cliente)}</span></td>
+      <td data-label="Nombre">
+        ${puedeEditar
+          ? `<input id="cli_n_${c.id}" value="${esc(c.nombre)}" style="min-width:140px">`
+          : `<b>${esc(c.nombre)}</b>`}
+      </td>
+      <td data-label="Teléfono">
+        ${puedeEditar
+          ? `<input id="cli_t_${c.id}" value="${esc(c.telefono)}" maxlength="14" style="min-width:120px">`
+          : `<span class="mono">${esc(c.telefono)}</span>`}
+      </td>
+      <td data-label="Correo">
+        ${puedeEditar
+          ? `<input id="cli_e_${c.id}" value="${esc(c.correo || '')}" placeholder="Sin correo" style="min-width:150px">`
+          : `<small>${esc(c.correo || '—')}</small>`}
+      </td>
+      <td data-label="Órdenes"><b>${c.total_ordenes || 0}</b></td>
+      <td data-label="Registro"><small>${fmtFecha(c.creado)}</small></td>
+      <td data-label="Acciones" style="display:flex;gap:6px;flex-wrap:wrap">
+        ${puedeEditar ? `
+          <button class="sm" onclick="seleccionarClienteParaEquipo(${c.id})">Registrar equipo</button>
+          <button class="sec sm" onclick="guardarEdicionCliente(${c.id})">Guardar</button>
+        ` : `<small class="text-muted">Consulta</small>`}
+      </td>
+    </tr>
+  `).join('');
+}
+
+function renderSelectorClientesOrden(filtro = '') {
+  const sel = $('selClienteOrden');
+  if (!sel) return;
+  const valorActual = sel.value;
+  const f = (filtro || '').trim().toLowerCase();
+  const filtrados = !f
+    ? listaClientesRegistrados
+    : listaClientesRegistrados.filter(c =>
+        (c.numero_cliente || '').toLowerCase().includes(f) ||
+        (c.nombre || '').toLowerCase().includes(f) ||
+        (c.telefono || '').toLowerCase().includes(f) ||
+        (c.correo || '').toLowerCase().includes(f)
+      );
+
+  sel.innerHTML = `<option value="">Selecciona un cliente (${filtrados.length} disponible${filtrados.length === 1 ? '' : 's'})</option>` +
+    filtrados.map(c => `<option value="${c.id}">${esc(c.numero_cliente)} — ${esc(c.nombre)} (${esc(c.telefono)})</option>`).join('');
+
+  if (valorActual && filtrados.some(c => String(c.id) === String(valorActual))) {
+    sel.value = valorActual;
+  } else if (f && filtrados.length === 1) {
+    sel.value = String(filtrados[0].id);
+  }
+  alSeleccionarClienteOrden();
+}
+
+function filtrarSelectorClientes() {
+  renderSelectorClientesOrden($('buscarCliOrden').value);
+}
+
+function alSeleccionarClienteOrden() {
+  const id = parseInt($('selClienteOrden')?.value || '0', 10);
+  const box = $('infoClienteSeleccionado');
+  if (!id) {
+    box?.classList.add('hidden');
+    return;
+  }
+  limpiarErrorCampo('selClienteOrden', 'errCliOrden');
+  const cli = listaClientesRegistrados.find(c => c.id === id);
+  if (!cli) {
+    box?.classList.add('hidden');
+    return;
+  }
+  $('lblCliNumero').textContent = cli.numero_cliente;
+  $('lblCliNombre').textContent = cli.nombre;
+  $('lblCliTel').textContent = `Tel: ${cli.telefono}`;
+  $('lblCliCorreo').textContent = cli.correo ? `· ${cli.correo}` : '';
+  box.classList.remove('hidden');
+}
+
+function limpiarClienteSeleccionadoOrden() {
+  $('selClienteOrden').value = '';
+  $('buscarCliOrden').value = '';
+  renderSelectorClientesOrden('');
+}
+
+async function crearCliente(irARegistrarEquipo = false) {
+  limpiarErrorCampo('cliNombre', 'errCliNombre');
+  limpiarErrorCampo('cliTelefono', 'errCliTel');
+
+  const nombre = $('cliNombre').value.trim();
+  const telefono = $('cliTelefono').value.trim();
+  const correo = $('cliCorreo').value.trim() || null;
+
+  if (!nombre) return mostrarErrorCampo('cliNombre', 'errCliNombre', 'Ingresa el nombre del cliente');
+  if (!telefono || telefono.replace(/\D/g, '').length !== 10) {
+    return mostrarErrorCampo('cliTelefono', 'errCliTel', 'Ingresa los 10 dígitos del teléfono');
+  }
+
+  const btn = $('btnGuardarCliente');
+  btn.disabled = true;
+  try {
+    const nuevo = await api('/clientes', 'POST', { nombre, telefono, correo });
+    $('cliNombre').value = '';
+    $('cliTelefono').value = '';
+    $('cliCorreo').value = '';
+    await cargarClientes();
+
+    if (irARegistrarEquipo) {
+      seleccionarClienteParaEquipo(nuevo.id);
+    } else {
+      alert(`Cliente registrado con número ${nuevo.numero_cliente}`);
+    }
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+async function guardarEdicionCliente(id) {
+  const nombre = $(`cli_n_${id}`).value.trim();
+  const telefono = $(`cli_t_${id}`).value.trim();
+  const correo = $(`cli_e_${id}`).value.trim();
+  await api(`/clientes/${id}`, 'PATCH', { nombre, telefono, correo });
+  await cargarClientes();
+}
+
+function seleccionarClienteParaEquipo(clienteId) {
+  irSeccion('nuevo');
+  $('buscarCliOrden').value = '';
+  renderSelectorClientesOrden('');
+  $('selClienteOrden').value = String(clienteId);
+  alSeleccionarClienteOrden();
+}
+
+// ---------- Sección 3: Crear Orden de Servicio ----------
+function seleccionarSeccionEquipo(sec) {
+  if ($('secEquipoActual')) $('secEquipoActual').value = sec;
+  ['bajos', 'medios', 'altos'].forEach(s => {
+    const btn = $(`btnSec_${s}`);
+    if (btn) btn.classList.toggle('activo', s === sec);
+  });
+  const inpTp = $('tp');
+  if (inpTp) {
+    if (sec === 'bajos') {
+      inpTp.placeholder = 'Ej. Formateo Windows 11, Office, Antivirus, Respaldo...';
+    } else if (sec === 'medios') {
+      inpTp.placeholder = 'Ej. Impresora, Disco duro, Memoria USB/RAM, Cargador...';
+    } else {
+      inpTp.placeholder = 'Ej. Laptop, CPU / Escritorio, All in One, Tarjeta madre...';
+    }
+  }
+}
+
+async function crear() {
+  limpiarErrorCampo('selClienteOrden', 'errCliOrden');
+  limpiarErrorCampo('tp', 'errTipoEquipo');
+  limpiarErrorCampo('iniTecnicos', 'errIniTecnicos');
+  limpiarErrorCampo('fa', 'errFallaOrden');
+
+  const v = i => ($(i)?.value || '').trim() || null;
+  const clienteId = parseInt($('selClienteOrden').value || '0', 10);
+  if (!clienteId) {
+    mostrarErrorCampo('selClienteOrden', 'errCliOrden', 'Selecciona un cliente registrado antes de continuar');
+    return;
+  }
+
+  const tipoManual = ($('tp')?.value || '').trim();
+  if (!tipoManual) {
+    mostrarErrorCampo('tp', 'errTipoEquipo', 'Escribe manualmente el tipo de equipo');
+    return;
+  }
+
+  const iniTec = ($('iniTecnicos')?.value || '').trim().toUpperCase();
+  if (!iniTec) {
+    mostrarErrorCampo('iniTecnicos', 'errIniTecnicos', 'Ingresa las iniciales de los técnicos que reciben el equipo');
+    return;
+  }
+
+  if (!($('fa').value || '').trim()) {
+    mostrarErrorCampo('fa', 'errFallaOrden', 'Describe la falla que presenta el equipo');
+    return;
+  }
+
+  const sec = ($('secEquipoActual')?.value || 'bajos').toLowerCase();
+
+  const btn = $('btnCrear');
+  btn.disabled = true;
+  btn.textContent = 'Generando folio...';
+  try {
+    const r = await api('/ordenes', 'POST', {
+      cliente_id: clienteId,
+      seccion_equipo: sec,
+      tipo: tipoManual,
+      marca: v('mk'),
+      modelo: v('md'),
+      num_serie: v('ns'),
+      falla: $('fa').value.trim(),
+      accesorios: v('ac'),
+      password_equipo: v('pe'),
+      fecha_estimada: v('fe'),
+      iniciales_tecnicos: iniTec
+    });
+
+    const files = $('fotosRec').files;
+    if (files && files.length) {
+      const fd = new FormData();
+      fd.append('etapa', 'recepcion');
+      if ($('fotosRecDesc').value.trim()) fd.append('descripcion', $('fotosRecDesc').value.trim());
+      for (const f of files) fd.append('archivos', f);
+      await apiForm(`/ordenes/${r.folio}/fotos`, fd);
+    }
+
+    ['tp', 'mk', 'md', 'ns', 'iniTecnicos', 'fa', 'ac', 'pe', 'fe', 'fotosRec', 'fotosRecDesc', 'buscarCliOrden'].forEach(i => {
+      if ($(i)) $(i).value = '';
+    });
+    $('selClienteOrden').value = '';
+    alSeleccionarClienteOrden();
+
+    await Promise.all([cargarDashboard(), listar()]);
+    abrirModalRecepcionCot(r.folio);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Generar folio de entrada';
+  }
+}
+
+function abrirModalRecepcionCot(folio) {
+  folioRecienCreado = folio;
+  $('lblFolioCreado').textContent = folio;
+  $('recManoObra').value = '0';
+  $('recRefacciones').value = '0';
+  $('recIva').value = '0';
+  $('recAnticipo').value = '0';
+  $('recMetodo').value = 'efectivo';
+  recalcularModalRecepcion();
+  $('modalRecepcionCot').classList.remove('hidden');
+}
+
+function recalcularModalRecepcion() {
+  const mo = parseFloat($('recManoObra').value || 0);
+  const rf = parseFloat($('recRefacciones').value || 0);
+  const ivaP = parseFloat($('recIva').value || 0);
+  const sub = mo + rf;
+  const tot = sub + sub * (ivaP / 100);
+  $('recTotalVista').value = fmtMXN(tot);
+}
+
+async function finalizarRecepcion(guardarDatos, abrirTicket) {
+  const folio = folioRecienCreado;
+  if (guardarDatos && folio) {
+    const mo = parseFloat($('recManoObra').value || 0);
+    const rf = parseFloat($('recRefacciones').value || 0);
+    const ivaP = parseFloat($('recIva').value || 0);
+    const ant = parseFloat($('recAnticipo').value || 0);
+    const met = $('recMetodo').value;
+
+    const items = [];
+    if (mo > 0) items.push({ tipo: 'mano_obra', descripcion: 'Mano de obra / Servicio', cantidad: 1, precio: mo });
+    if (rf > 0) items.push({ tipo: 'refaccion', descripcion: 'Refacciones estimadas', cantidad: 1, precio: rf });
+
+    if (items.length > 0) {
+      await api(`/ordenes/${folio}/cotizacion`, 'POST', {
+        iva_porcentaje: ivaP,
+        items
+      });
+    }
+    if (ant > 0) {
+      await api(`/ordenes/${folio}/pagos`, 'POST', {
+        monto: ant,
+        metodo: met,
+        concepto: 'Anticipo en recepción'
+      });
+    }
+    await Promise.all([cargarDashboard(), listar()]);
+  }
+  $('modalRecepcionCot').classList.add('hidden');
+  if (abrirTicket && folio) {
+    window.open(`/ticket.html?folio=${encodeURIComponent(folio)}`, '_blank');
+  }
+  if (folio) abrir(folio);
+}
+
+// ---------- Sección 2: Listar Equipos ----------
+async function listar() {
+  const params = new URLSearchParams();
+  const q = $('qBusqueda').value.trim();
+  const est = $('filtro').value;
+  const tec = $('filtroTecnico').value;
+  const fDesde = $('filtroDesde').value;
+  const fHasta = $('filtroHasta').value;
+  const ret = $('filtroRetrasados').checked;
+
+  if (q) params.set('q', q);
+  if (est) params.set('estatus', est);
+  if (tec) params.set('tecnico_id', tec);
+  if (fDesde) params.set('fecha_desde', fDesde);
+  if (fHasta) params.set('fecha_hasta', fHasta);
+  if (ret) params.set('retrasados', 'true');
+
+  $('loadingOrdenes').classList.remove('hidden');
+  try {
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    const d = await api('/ordenes' + qs);
+    if (!q && !est && !tec && !fDesde && !fHasta && !ret) {
+      ultimasOrdenesCargadas = d || [];
+      if ($('badgeNavEquipos')) $('badgeNavEquipos').textContent = ultimasOrdenesCargadas.length;
+      renderRecientesEnInicio(ultimasOrdenesCargadas);
+    }
+    const tb = $('tb');
+    const empty = $('emptyOrdenes');
+    const tabla = $('tablaEquiposMain');
+
+    if (!d.length) {
+      tb.innerHTML = '';
+      tabla.classList.add('hidden');
+      empty.classList.remove('hidden');
+      return;
+    }
+
+    tabla.classList.remove('hidden');
+    empty.classList.add('hidden');
+
+    tb.innerHTML = d.map(r => `
+      <tr class="fila ${r.retrasado ? 'fila-retrasada' : ''}" onclick="abrir('${esc(r.folio)}')">
+        <td data-label="Folio">
+          <b class="mono" style="color:var(--text-main)">${esc(r.folio)}</b>
+          ${r.mensajes_no_leidos > 0 ? `<span class="badge status-red" title="Mensajes del cliente sin leer">${r.mensajes_no_leidos} msg</span>` : ''}
+          ${r.retrasado ? `<span class="badge status-red">Retrasado</span>` : ''}
+        </td>
+        <td data-label="Cliente">
+          <div style="font-weight:500">${esc(r.cliente)}</div>
+          <small class="mono">${esc(r.numero_cliente || '')} · ${esc(r.telefono)}</small>
+        </td>
+        <td data-label="Equipo">${esc(r.tipo)} ${esc(r.marca || '')} ${esc(r.modelo || '')}</td>
+        <td data-label="Técnico"><small>${esc(r.tecnico_nombre || 'Sin asignar')}</small></td>
+        <td data-label="Estatus"><span class="badge ${claseBadgeEstatus(r.estatus)}">${esc(r.estatus)}</span></td>
+        <td data-label="Saldo">
+          ${r.total_cotizado > 0
+            ? `<span style="font-weight:600;color:${r.saldo_pendiente > 0 ? 'var(--status-warning-fg)' : 'var(--status-success-fg)'}">${fmtMXN(r.saldo_pendiente)}</span>`
+            : '<small class="text-muted">Sin cotizar</small>'}
+        </td>
+        <td data-label="Ingreso"><small>${fmtFecha(r.fecha_ingreso)}</small></td>
+      </tr>
+    `).join('');
+  } finally {
+    $('loadingOrdenes').classList.add('hidden');
+  }
+}
+
+// ---------- Lightbox ----------
+function verFoto(url, cap) {
+  $('lbImg').src = url;
+  $('lbCap').textContent = cap || '';
+  $('lightbox').classList.remove('hidden');
+}
+
+function cerrarLightbox() {
+  $('lightbox').classList.add('hidden');
+  $('lbImg').src = '';
+}
+
+function filtrarEtapa(etapa) {
+  etapaFiltro = etapa;
+  if (actual) abrir(actual, false);
+}
+
+function cambiarTabDetalle(tab) {
+  tabDetalleActual = tab;
+  ['resumen', 'cotizacion', 'chat', 'historial'].forEach(t => {
+    const panel = $(`tabPanel_${t}`);
+    const btn = $(`tabBtn_${t}`);
+    if (panel) panel.classList.toggle('hidden', t !== tab);
+    if (btn) btn.classList.toggle('activo', t === tab);
+  });
+}
+
+// ---------- Clave cifrada del equipo ----------
+async function alternarPasswordEquipo() {
+  if (!actual) return;
+  const span = $('textoClaveEquipo');
+  const btn = $('btnVerClaveEquipo');
+  if (claveRevelada !== null) {
+    claveRevelada = null;
+    span.textContent = '••••••••';
+    btn.textContent = 'Mostrar';
+    return;
+  }
+  const r = await api(`/ordenes/${actual}/password-equipo`);
+  claveRevelada = r.password_equipo || '(vacía)';
+  span.textContent = claveRevelada;
+  btn.textContent = 'Ocultar';
+}
+
+// ---------- Edición administrativa ----------
+function toggleEditarOrden() {
+  $('formEditarOrden').classList.toggle('hidden');
+}
+
+async function guardarEdicionOrden() {
+  if (!actual) return;
+  await api(`/ordenes/${actual}`, 'PUT', {
+    cliente_nombre: $('edCliNombre').value.trim(),
+    cliente_telefono: $('edCliTel').value.trim(),
+    cliente_correo: $('edCliCorreo').value.trim(),
+    tipo: $('edTipo').value.trim(),
+    marca: $('edMarca').value.trim(),
+    modelo: $('edModelo').value.trim(),
+    num_serie: $('edSerie').value.trim(),
+    iniciales_tecnicos: ($('edIniTecnicos')?.value || '').trim().toUpperCase(),
+    seccion_bajos: ($('edSecBajos')?.value || '').trim(),
+    seccion_medios: ($('edSecMedios')?.value || '').trim(),
+    seccion_altos: ($('edSecAltos')?.value || '').trim(),
+    falla: $('edFalla').value.trim(),
+    accesorios: $('edAccesorios').value.trim(),
+    password_equipo: $('edPassEquipo').value ? $('edPassEquipo').value : null,
+    fecha_estimada: $('edFechaEst').value
+  });
+  await Promise.all([abrir(actual, false), listar(), cargarDashboard()]);
+}
+
+// ---------- Cotización con desglose e IVA ----------
+function inicializarItemsCotizacion(o) {
+  const ultima = o.cotizacion;
+  if (ultima && ultima.items && ultima.items.length) {
+    itemsCotizacionTemp = ultima.items.map(it => ({
+      tipo: it.tipo || 'refaccion',
+      descripcion: it.descripcion || '',
+      cantidad: Number(it.cantidad || 1),
+      precio: Number(it.precio || 0)
+    }));
+  } else {
+    itemsCotizacionTemp = [
+      { tipo: 'mano_obra', descripcion: 'Diagnóstico y mano de obra', cantidad: 1, precio: 0 }
+    ];
+  }
+}
+
+function renderFilasItemsCot() {
+  const cont = $('contenedorItemsCot');
+  if (!cont) return;
+  cont.innerHTML = itemsCotizacionTemp.map((it, idx) => `
+    <div style="display:grid;grid-template-columns:130px 1fr 85px 120px 36px;gap:8px;align-items:center;margin-bottom:8px">
+      <select onchange="actualizarItemCot(${idx}, 'tipo', this.value)">
+        <option value="mano_obra" ${it.tipo === 'mano_obra' ? 'selected' : ''}>Mano de obra</option>
+        <option value="refaccion" ${it.tipo === 'refaccion' ? 'selected' : ''}>Refacción</option>
+      </select>
+      <input placeholder="Concepto o pieza..." value="${esc(it.descripcion)}" oninput="actualizarItemCot(${idx}, 'descripcion', this.value)">
+      <input type="number" step="1" min="1" value="${it.cantidad}" oninput="actualizarItemCot(${idx}, 'cantidad', this.value)" title="Cantidad">
+      <input type="number" step="0.01" min="0" value="${it.precio}" oninput="actualizarItemCot(${idx}, 'precio', this.value)" title="Precio unitario">
+      <button type="button" class="no sm" onclick="quitarFilaItemCot(${idx})" title="Quitar concepto">✕</button>
+    </div>
+  `).join('');
+  recalcularTotalesCotUI();
+}
+
+function agregarFilaItemCot(tipo = 'refaccion') {
+  itemsCotizacionTemp.push({
+    tipo,
+    descripcion: tipo === 'mano_obra' ? 'Mano de obra' : '',
+    cantidad: 1,
+    precio: 0
+  });
+  renderFilasItemsCot();
+}
+
+function quitarFilaItemCot(idx) {
+  itemsCotizacionTemp.splice(idx, 1);
+  if (!itemsCotizacionTemp.length) {
+    itemsCotizacionTemp.push({ tipo: 'mano_obra', descripcion: 'Mano de obra', cantidad: 1, precio: 0 });
+  }
+  renderFilasItemsCot();
+}
+
+function actualizarItemCot(idx, campo, valor) {
+  if (!itemsCotizacionTemp[idx]) return;
+  if (campo === 'cantidad') {
+    itemsCotizacionTemp[idx][campo] = Math.max(1, parseInt(valor || 1, 10));
+  } else if (campo === 'precio') {
+    itemsCotizacionTemp[idx][campo] = parseFloat(valor || 0);
+  } else {
+    itemsCotizacionTemp[idx][campo] = valor;
+  }
+  recalcularTotalesCotUI();
+}
+
+function recalcularTotalesCotUI() {
+  const ivaP = parseFloat($('cotIva')?.value || 0);
+  let sub = 0;
+  for (const it of itemsCotizacionTemp) {
+    sub += (Number(it.cantidad) || 0) * (Number(it.precio) || 0);
+  }
+  const ivaM = sub * (ivaP / 100);
+  const tot = sub + ivaM;
+  if ($('lblCotSubtotal')) $('lblCotSubtotal').textContent = fmtMXN(sub);
+  if ($('lblCotIvaMonto')) $('lblCotIvaMonto').textContent = fmtMXN(ivaM);
+  if ($('lblCotTotal')) $('lblCotTotal').textContent = fmtMXN(tot);
+}
+
+async function enviarCotizacionDesglosada() {
+  const limpios = itemsCotizacionTemp
+    .filter(i => (i.descripcion || '').trim() && (i.cantidad * i.precio) >= 0)
+    .map(i => ({
+      descripcion: i.descripcion.trim(),
+      tipo: i.tipo,
+      cantidad: Math.max(1, parseInt(i.cantidad || 1, 10)),
+      precio: Number(i.precio || 0)
+    }));
+  if (!limpios.length) return alert('Agrega al menos un concepto con descripción');
+  const ivaP = parseFloat($('cotIva').value || 0);
+  await api(`/ordenes/${actual}/cotizacion`, 'POST', {
+    iva_porcentaje: ivaP,
+    items: limpios
+  });
+  await Promise.all([abrir(actual, false), listar(), cargarDashboard()]);
+}
+
+// ---------- Pagos y Anticipos ----------
+async function registrarPagoOrden() {
+  const monto = parseFloat($('pagoMonto').value || 0);
+  if (!monto || monto <= 0) return alert('Ingresa un monto mayor a $0');
+  const tipoSel = $('pagoTipo').value;
+  const notaExtra = ($('pagoNota')?.value || '').trim();
+  const conceptoBase = tipoSel === 'anticipo' ? 'Anticipo' : tipoSel === 'liquidacion' ? 'Liquidación' : 'Abono parcial';
+  const concepto = notaExtra ? `${conceptoBase} — ${notaExtra}` : conceptoBase;
+  await api(`/ordenes/${actual}/pagos`, 'POST', {
+    monto,
+    metodo: $('pagoMetodo').value,
+    concepto
+  });
+  await Promise.all([abrir(actual, false), listar(), cargarDashboard()]);
+}
+
+// ---------- Modal de Entrega con Firma Digital ----------
+let dibujandoFirma = false;
+let firmaTrazoRealizado = false;
+
+function inicializarCanvasFirma() {
+  const canvas = $('canvasFirma');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  ctx.strokeStyle = '#09090b';
+  ctx.lineWidth = 2.2;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+
+  const pos = e => {
+    const rect = canvas.getBoundingClientRect();
+    const touch = e.touches ? e.touches[0] : e;
+    return {
+      x: (touch.clientX - rect.left) * (canvas.width / rect.width),
+      y: (touch.clientY - rect.top) * (canvas.height / rect.height)
+    };
+  };
+
+  canvas.onpointerdown = e => {
+    dibujandoFirma = true;
+    firmaTrazoRealizado = true;
+    const p = pos(e);
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+  };
+  canvas.onpointermove = e => {
+    if (!dibujandoFirma) return;
+    const p = pos(e);
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+  };
+  window.addEventListener('pointerup', () => { dibujandoFirma = false; });
+}
+
+function limpiarFirmaCanvas() {
+  const canvas = $('canvasFirma');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  firmaTrazoRealizado = false;
+}
+
+function abrirModalEntrega() {
+  if (!ordenActualObj) return;
+  const o = ordenActualObj;
+  $('lblFolioEntrega').textContent = o.folio;
+  $('entRecibe').value = o.entregado_a || o.cliente || '';
+  $('entNota').value = 'Equipo entregado funcionando y de conformidad';
+
+  $('resumenSaldoEntrega').innerHTML = `
+    <div class="saldo-item"><div class="lbl">Total autorizado</div><div class="monto">${fmtMXN(o.total_cotizado)}</div></div>
+    <div class="saldo-item"><div class="lbl">Total abonado</div><div class="monto" style="color:var(--status-success-fg)">${fmtMXN(o.total_pagado)}</div></div>
+    <div class="saldo-item"><div class="lbl">Saldo pendiente</div><div class="monto" style="color:${o.saldo_pendiente > 0 ? 'var(--status-warning-fg)' : 'var(--status-success-fg)'}">${fmtMXN(o.saldo_pendiente)}</div></div>
+  `;
+
+  if (o.saldo_pendiente > 0) {
+    $('boxLiquidarSaldo').classList.remove('hidden');
+    $('lblMontoLiquidar').textContent = fmtMXN(o.saldo_pendiente);
+    $('chkLiquidarEnEntrega').checked = true;
+  } else {
+    $('boxLiquidarSaldo').classList.add('hidden');
+    $('chkLiquidarEnEntrega').checked = false;
+  }
+
+  $('modalEntrega').classList.remove('hidden');
+  limpiarFirmaCanvas();
+  inicializarCanvasFirma();
+}
+
+function cerrarModalEntrega() {
+  $('modalEntrega').classList.add('hidden');
+}
+
+async function confirmarEntregaEquipo() {
+  const recibe = $('entRecibe').value.trim();
+  if (!recibe) return alert('Indica el nombre de la persona que recibe el equipo');
+  if (!firmaTrazoRealizado) return alert('Solicita la firma del cliente en el recuadro antes de confirmar');
+
+  const canvas = $('canvasFirma');
+  const firmaBase64 = canvas.toDataURL('image/png');
+
+  if ($('chkLiquidarEnEntrega').checked && ordenActualObj && ordenActualObj.saldo_pendiente > 0) {
+    await api(`/ordenes/${actual}/pagos`, 'POST', {
+      monto: ordenActualObj.saldo_pendiente,
+      metodo: $('metodoLiquidarEntrega').value,
+      concepto: 'Liquidación al entregar equipo'
+    });
+  }
+
+  await api(`/ordenes/${actual}/entregar`, 'POST', {
+    recibido_por: recibe,
+    firma_base64: firmaBase64,
+    confirmar_saldo_pendiente: true,
+    nota: $('entNota').value.trim() || null
+  });
+
+  cerrarModalEntrega();
+  await Promise.all([abrir(actual, false), listar(), cargarDashboard()]);
+}
+
+function usarRespuestaRapida(texto) {
+  const inp = $('mt');
+  if (!inp) return;
+  inp.value = texto;
+  inp.focus();
+}
+
+// ---------- Sección 4: Abrir Detalle de Orden con Pestañas ----------
+async function abrir(f, cambiarASeccion = true) {
+  if (actual !== f) {
+    claveRevelada = null;
+    tabDetalleActual = 'resumen';
+  }
+  actual = f;
+  if (cambiarASeccion) irSeccion('detalle');
+
+  const [o, est] = await Promise.all([
+    api('/ordenes/' + f),
+    api('/estatus')
+  ]);
+  ordenActualObj = o;
+  inicializarItemsCotizacion(o);
+
+  const todasFotos = o.fotos || [];
+  const fotosFiltradas = etapaFiltro === 'todas' ? todasFotos : todasFotos.filter(x => x.etapa === etapaFiltro);
+  const conteo = {
+    todas: todasFotos.length,
+    recepcion: todasFotos.filter(x => x.etapa === 'recepcion').length,
+    proceso: todasFotos.filter(x => x.etapa === 'proceso').length,
+    entrega: todasFotos.filter(x => x.etapa === 'entrega').length
+  };
+
+  const prevSerie = o.historial_previo?.num_serie || [];
+  const prevCli = o.historial_previo?.cliente || [];
+  const rol = usuarioLogueado?.rol || 'tecnico';
+  const puedeEditarOrden = rol === 'admin' || rol === 'recepcion';
+  const ultimaCot = o.cotizacion;
+  const ivaInicial = ultimaCot ? Number(ultimaCot.iva_porcentaje || 0) : 0;
+
+  $('det').innerHTML = `
+    <!-- ENCABEZADO DEL DETALLE DE ORDEN + ACCIONES PRINCIPALES -->
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:14px;padding-bottom:16px;border-bottom:1px solid var(--border)">
+        <div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <h1 class="mono" style="font-size:22px;margin:0">${esc(o.folio)}</h1>
+            <span class="badge lg ${claseBadgeEstatus(o.estatus)}">${esc(o.estatus)}</span>
+            ${o.retrasado ? '<span class="badge status-red">Retrasado</span>' : ''}
+          </div>
+          <p style="margin:6px 0 0 0;font-size:13px;color:var(--text-secondary)">
+            <span class="mono" style="font-weight:600">${esc(o.numero_cliente || '')}</span> ·
+            <b>${esc(o.cliente)}</b> (${esc(o.telefono)}) ·
+            ${esc(o.tipo)} ${esc(o.marca || '')} ${esc(o.modelo || '')}
+          </p>
+        </div>
+
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <a class="btn sec sm" href="/ticket.html?folio=${encodeURIComponent(o.folio)}" target="_blank">
+            <svg class="icon icon-sm" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Imprimir comprobante
+          </a>
+          <a class="btn sec sm" href="/?folio=${encodeURIComponent(o.folio)}" target="_blank">Vista cliente</a>
+          ${o.estatus !== 'Entregado' ? `
+            <button class="ok sm" onclick="abrirModalEntrega()">Registrar entrega</button>
+          ` : ''}
+        </div>
+      </div>
+
+      <!-- Barra rápida para cambiar estatus -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;align-items:end;margin-top:16px">
+        <div class="field">
+          <label for="ne">Cambiar estatus de la orden</label>
+          <select id="ne">
+            ${est.map(x => `<option ${x === o.estatus ? 'selected' : ''}>${esc(x)}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field">
+          <label for="nn">Nota de avance (visible para el cliente)</label>
+          <input id="nn" placeholder="Escribe qué se revisó o avanzó...">
+        </div>
+        <div>
+          <button onclick="estatus()" style="width:100%">Actualizar estatus</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PESTAÑAS INTERNAS DEL DETALLE -->
+    <div class="sub-tabs" role="tablist">
+      <button id="tabBtn_resumen" class="sub-tab-btn activo" onclick="cambiarTabDetalle('resumen')">Resumen y Evidencia (${todasFotos.length})</button>
+      <button id="tabBtn_cotizacion" class="sub-tab-btn" onclick="cambiarTabDetalle('cotizacion')">Cotización y Pagos</button>
+      <button id="tabBtn_chat" class="sub-tab-btn" onclick="cambiarTabDetalle('chat')">Chat (${(o.mensajes || []).length})</button>
+      <button id="tabBtn_historial" class="sub-tab-btn" onclick="cambiarTabDetalle('historial')">Historial (${(o.historial || []).length})</button>
+    </div>
+
+    <!-- ==============================================================
+         PESTAÑA 1: RESUMEN Y EVIDENCIA
+         ============================================================== -->
+    <div id="tabPanel_resumen">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Información general del servicio</h3>
+          ${puedeEditarOrden ? `<button class="sec sm" onclick="toggleEditarOrden()">Editar datos</button>` : ''}
+        </div>
+
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="info-label">Cliente</span>
+            <span class="info-value">${esc(o.cliente)} <span class="badge status-neutral mono">${esc(o.numero_cliente || '')}</span></span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Teléfono / Correo</span>
+            <span class="info-value mono">${esc(o.telefono)} ${o.correo ? `· ${esc(o.correo)}` : ''}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Sección / Equipo</span>
+            <span class="info-value">
+              ${o.seccion_equipo ? `<span class="badge status-neutral" style="margin-right:6px">${esc(o.seccion_equipo)}</span>` : ''}
+              ${esc(o.tipo)} ${esc(o.marca || '')} ${esc(o.modelo || '')}
+            </span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Número de serie</span>
+            <span class="info-value mono">${esc(o.num_serie || 'N/A')}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Iniciales de técnicos que reciben</span>
+            <span class="info-value mono"><span class="badge status-neutral mono">${esc(o.iniciales_tecnicos || o.tecnico_nombre || 'Sin asignar')}</span></span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Fecha de ingreso</span>
+            <span class="info-value">${fmtFecha(o.fecha_ingreso)}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Entrega estimada</span>
+            <span class="info-value">${esc(o.fecha_estimada || 'Por definir')}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Accesorios recibidos</span>
+            <span class="info-value">${esc(o.accesorios || 'Ninguno')}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Contraseña / PIN del equipo</span>
+            <span class="info-value">
+              ${o.tiene_password_equipo
+                ? `<span class="clave-box"><code id="textoClaveEquipo">••••••••</code>${o.puede_ver_password ? `<button id="btnVerClaveEquipo" class="sec sm" onclick="alternarPasswordEquipo()">Mostrar</button>` : ''}</span>`
+                : '<span class="text-muted">Sin clave registrada</span>'}
+            </span>
+          </div>
+        </div>
+
+        <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+          <span class="info-label">Falla reportada / Motivo de ingreso</span>
+          <p style="margin:4px 0 0 0;color:var(--text-main);font-weight:500">${esc(o.falla)}</p>
+        </div>
+
+        ${(prevCli.length || prevSerie.length) ? `
+          <div class="antecedentes-box" style="margin-top:16px">
+            <h4 style="margin:0 0 6px 0">Antecedentes detectados en el taller</h4>
+            ${prevSerie.length ? `
+              <div style="margin-bottom:6px">
+                <b>Mismo número de serie (${esc(o.num_serie)}):</b>
+                <ul style="margin:4px 0;padding-left:18px">
+                  ${prevSerie.map(p => `
+                    <li>
+                      <a href="javascript:void(0)" onclick="abrir('${esc(p.folio)}')"><b>${esc(p.folio)}</b></a>
+                      (${fmtFecha(p.fecha_ingreso)}) — ${esc(p.estatus)} — ${esc(p.falla)}
+                    </li>
+                  `).join('')}
+                </ul>
+              </div>
+            ` : ''}
+            ${prevCli.length ? `
+              <div>
+                <b>Órdenes previas del cliente (${esc(o.cliente)}):</b>
+                <ul style="margin:4px 0;padding-left:18px">
+                  ${prevCli.map(p => `
+                    <li>
+                      <a href="javascript:void(0)" onclick="abrir('${esc(p.folio)}')"><b>${esc(p.folio)}</b></a>
+                      (${fmtFecha(p.fecha_ingreso)}) — ${esc(p.tipo)} ${esc(p.marca || '')} — ${esc(p.estatus)}
+                    </li>
+                  `).join('')}
+                </ul>
+              </div>
+            ` : ''}
+          </div>
+        ` : ''}
+
+        ${o.firma_url ? `
+          <div style="margin-top:16px;padding:12px 16px;background:var(--status-success-bg);border:1px solid var(--status-success-border);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+            <div>
+              <strong style="color:var(--status-success-fg)">Equipo entregado a: ${esc(o.entregado_a || o.cliente)}</strong>
+              <div style="font-size:12px;color:var(--status-success-fg)">Fecha de entrega: ${fmtFecha(o.fecha_entrega)}</div>
+            </div>
+            <img src="${esc(o.firma_url)}" alt="Firma de conformidad" style="height:52px;background:#fff;border:1px solid var(--border);border-radius:6px;padding:4px">
+          </div>
+        ` : ''}
+
+        <!-- Formulario colapsable de edición administrativa -->
+        <div id="formEditarOrden" class="hidden" style="margin-top:16px;padding-top:16px;border-top:1px solid var(--border)">
+          <h4 style="margin-top:0">Editar datos de la orden</h4>
+          <div class="form-grid cols-3">
+            <div class="field">
+              <label>Nombre del cliente</label>
+              <input id="edCliNombre" value="${esc(o.cliente)}">
+            </div>
+            <div class="field">
+              <label>Teléfono (10 dígitos)</label>
+              <input id="edCliTel" value="${esc(o.telefono)}">
+            </div>
+            <div class="field">
+              <label>Correo</label>
+              <input id="edCliCorreo" value="${esc(o.correo || '')}">
+            </div>
+            <div class="field">
+              <label>Tipo de equipo / Resumen</label>
+              <input id="edTipo" value="${esc(o.tipo || '')}">
+            </div>
+            <div class="field">
+              <label>Marca</label>
+              <input id="edMarca" value="${esc(o.marca || '')}">
+            </div>
+            <div class="field">
+              <label>Modelo</label>
+              <input id="edModelo" value="${esc(o.modelo || '')}">
+            </div>
+            <div class="field">
+              <label>Número de serie</label>
+              <input id="edSerie" value="${esc(o.num_serie || '')}">
+            </div>
+            <div class="field">
+              <label>Fecha estimada</label>
+              <input id="edFechaEst" type="date" value="${esc(o.fecha_estimada || '')}">
+            </div>
+            <div class="field">
+              <label>Iniciales de técnicos que reciben</label>
+              <input id="edIniTecnicos" class="mono" value="${esc(o.iniciales_tecnicos || '')}" placeholder="Ej. JPE, MRL" oninput="this.value = this.value.toUpperCase()">
+            </div>
+            <div class="field span-2">
+              <label>Falla reportada</label>
+              <textarea id="edFalla" rows="2">${esc(o.falla)}</textarea>
+            </div>
+            <div class="field">
+              <label>Accesorios</label>
+              <input id="edAccesorios" value="${esc(o.accesorios || '')}">
+            </div>
+            <div class="field">
+              <label>Nueva contraseña / PIN (opcional)</label>
+              <input id="edPassEquipo" placeholder="Dejar vacío para conservar actual">
+            </div>
+          </div>
+          <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:14px">
+            <button class="sec sm" onclick="toggleEditarOrden()">Cancelar</button>
+            <button class="sm" onclick="guardarEdicionOrden()">Guardar cambios</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Evidencia fotográfica -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Evidencia fotográfica (${conteo.todas})</h3>
+          <div class="etapas-tabs">
+            <button class="etapas-tab-btn ${etapaFiltro === 'todas' ? 'activo' : ''}" onclick="filtrarEtapa('todas')">Todas (${conteo.todas})</button>
+            <button class="etapas-tab-btn ${etapaFiltro === 'recepcion' ? 'activo' : ''}" onclick="filtrarEtapa('recepcion')">Recepción (${conteo.recepcion})</button>
+            <button class="etapas-tab-btn ${etapaFiltro === 'proceso' ? 'activo' : ''}" onclick="filtrarEtapa('proceso')">En proceso (${conteo.proceso})</button>
+            <button class="etapas-tab-btn ${etapaFiltro === 'entrega' ? 'activo' : ''}" onclick="filtrarEtapa('entrega')">Entrega (${conteo.entrega})</button>
+          </div>
+        </div>
+
+        <div class="upload-box">
+          <div class="form-grid cols-3" style="align-items:end">
+            <div class="field">
+              <label for="fEtapa">Etapa</label>
+              <select id="fEtapa">
+                <option value="recepcion">Recepción</option>
+                <option value="proceso" selected>En proceso / Diagnóstico</option>
+                <option value="entrega">Entrega</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="fFiles">Fotografías</label>
+              <input id="fFiles" type="file" accept="image/*" capture="environment" multiple>
+            </div>
+            <div class="field">
+              <label for="fDesc">Nota de la evidencia</label>
+              <div style="display:flex;gap:8px">
+                <input id="fDesc" placeholder="Ej. Limpieza interna" style="flex:1">
+                <button id="btnSubirFoto" onclick="subirFotos()">Subir</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        ${fotosFiltradas.length ? `
+          <div class="galeria-grid">
+            ${fotosFiltradas.map(x => `
+              <div class="foto-item">
+                <img src="${esc(x.archivo_url)}" alt="${esc(x.descripcion || 'Evidencia')}" loading="lazy"
+                     onclick="verFoto('${esc(x.archivo_url)}', '${esc(ETIQUETAS_ETAPA[x.etapa] || x.etapa)}: ${esc(x.descripcion || '')}')">
+                <div class="meta">
+                  <div>
+                    <span class="badge status-neutral">${esc(ETIQUETAS_ETAPA[x.etapa] || x.etapa)}</span>
+                    <div style="margin-top:4px">${esc(x.descripcion || 'Sin nota')}</div>
+                  </div>
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+                    <small>${fmtFecha(x.fecha)}</small>
+                    <button class="no sm" style="padding:2px 6px;min-height:22px" onclick="eliminarFoto(${x.id})">✕</button>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        ` : '<p class="text-muted" style="margin-top:12px">No hay fotografías registradas en esta etapa.</p>'}
+      </div>
+    </div>
+
+    <!-- ==============================================================
+         PESTAÑA 2: COTIZACIÓN Y PAGOS
+         ============================================================== -->
+    <div id="tabPanel_cotizacion" class="hidden">
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title">Generar cotización desglosada</h3>
+          <div style="display:flex;gap:6px">
+            <button type="button" class="sec sm" onclick="agregarFilaItemCot('mano_obra')">+ Mano de obra</button>
+            <button type="button" class="sec sm" onclick="agregarFilaItemCot('refaccion')">+ Refacción</button>
+          </div>
+        </div>
+
+        <div id="contenedorItemsCot"></div>
+
+        <div class="form-grid cols-2" style="align-items:end;margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+          <div class="field">
+            <label for="cotIva">Tasa de IVA</label>
+            <select id="cotIva" onchange="recalcularTotalesCotUI()">
+              <option value="0" ${ivaInicial === 0 ? 'selected' : ''}>0% (Sin IVA)</option>
+              <option value="16" ${ivaInicial === 16 ? 'selected' : ''}>16% (Con IVA)</option>
+            </select>
+          </div>
+          <div style="text-align:right">
+            <div class="text-muted">Subtotal: <b id="lblCotSubtotal">$0.00</b> · IVA: <b id="lblCotIvaMonto">$0.00</b></div>
+            <div style="font-size:18px;font-weight:700;margin:4px 0 8px 0">Total: <span id="lblCotTotal">$0.00</span></div>
+            <button onclick="enviarCotizacionDesglosada()" style="width:100%">Guardar y enviar cotización al cliente</button>
+          </div>
+        </div>
+
+        ${ultimaCot ? `
+          <div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+            <h4 style="margin:0 0 10px 0">Cotización vigente (v${ultimaCot.version || 1})</h4>
+            <div style="padding:12px;border:1px solid var(--border);border-radius:var(--radius-md)">
+              <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+                <div>
+                  <b style="font-size:15px">${fmtMXN(ultimaCot.total)}</b>
+                  <small style="margin-left:8px">(Subtotal: ${fmtMXN(ultimaCot.subtotal || ultimaCot.total)} · IVA ${Number(ultimaCot.iva_porcentaje || 0)}%: ${fmtMXN(ultimaCot.iva_monto || 0)})</small>
+                </div>
+                <span class="badge ${claseBadgeEstatus(ultimaCot.estatus)}">${esc(ultimaCot.estatus)}</span>
+              </div>
+              ${(ultimaCot.items || []).length ? `
+                <ul style="margin:8px 0 0 0;padding-left:18px;font-size:12px;color:var(--text-secondary)">
+                  ${ultimaCot.items.map(it => `<li><span class="badge tipo-${it.tipo}">${it.tipo === 'refaccion' ? 'Refacción' : 'Mano de obra'}</span> ${esc(it.descripcion)} (${it.cantidad} × ${fmtMXN(it.precio)}) = <b>${fmtMXN(it.importe)}</b></li>`).join('')}
+                </ul>
+              ` : ''}
+            </div>
+          </div>
+        ` : ''}
+      </div>
+
+      <!-- Control de anticipos y pagos -->
+      <div class="card">
+        <h3 class="card-title" style="margin-bottom:12px">Control de anticipos y saldo</h3>
+        <div class="saldo-resumen">
+          <div class="saldo-item"><div class="lbl">Total cotizado</div><div class="monto">${fmtMXN(o.total_cotizado)}</div></div>
+          <div class="saldo-item"><div class="lbl">Total abonado</div><div class="monto" style="color:var(--status-success-fg)">${fmtMXN(o.total_pagado)}</div></div>
+          <div class="saldo-item"><div class="lbl">Saldo pendiente</div><div class="monto" style="color:${o.saldo_pendiente > 0 ? 'var(--status-warning-fg)' : 'var(--status-success-fg)'}">${fmtMXN(o.saldo_pendiente)}</div></div>
+        </div>
+
+        <div class="form-grid cols-3" style="align-items:end;margin-top:14px">
+          <div class="field">
+            <label for="pagoMonto">Monto ($ MXN)</label>
+            <input id="pagoMonto" type="number" step="0.01" min="0" value="${o.saldo_pendiente > 0 ? o.saldo_pendiente : ''}" placeholder="0.00">
+          </div>
+          <div class="field">
+            <label for="pagoTipo">Concepto</label>
+            <select id="pagoTipo">
+              <option value="anticipo">Anticipo</option>
+              <option value="abono">Abono parcial</option>
+              <option value="liquidacion" ${o.saldo_pendiente > 0 ? 'selected' : ''}>Liquidación</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="pagoMetodo">Método</label>
+            <select id="pagoMetodo">
+              <option value="efectivo">Efectivo</option>
+              <option value="transferencia">Transferencia</option>
+              <option value="tarjeta">Tarjeta</option>
+            </select>
+          </div>
+          <div class="field span-2">
+            <label for="pagoNota">Referencia o nota</label>
+            <input id="pagoNota" placeholder="Opcional (ej. Folio de transferencia)">
+          </div>
+          <div>
+            <button onclick="registrarPagoOrden()" style="width:100%">Registrar pago</button>
+          </div>
+        </div>
+
+        ${(o.pagos || []).length ? `
+          <div class="table-wrap" style="margin-top:16px">
+            <table>
+              <thead>
+                <tr><th>Fecha</th><th>Concepto</th><th>Método</th><th>Registró</th><th>Monto</th></tr>
+              </thead>
+              <tbody>
+                ${o.pagos.map(p => `
+                  <tr>
+                    <td><small>${fmtFecha(p.fecha)}</small></td>
+                    <td><span class="badge status-neutral">${esc(p.concepto || 'Abono')}</span></td>
+                    <td style="text-transform:capitalize">${esc(p.metodo)}</td>
+                    <td><small>${esc(p.usuario_nombre || '—')}</small></td>
+                    <td><b>${fmtMXN(p.monto)}</b></td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        ` : '<p class="text-muted" style="margin-top:12px">Aún no se han registrado pagos en esta orden.</p>'}
+      </div>
+    </div>
+
+    <!-- ==============================================================
+         PESTAÑA 3: CHAT CON EL CLIENTE
+         ============================================================== -->
+    <div id="tabPanel_chat" class="hidden">
+      <div class="chat-panel">
+        <div id="ch" class="chat">
+          ${(o.mensajes || []).length ? o.mensajes.map(m => `
+            <div class="m ${esc(m.emisor)}">
+              <b>${m.emisor === 'tecnico' ? 'Taller' : 'Cliente'}:</b>
+              ${m.texto ? `<span>${esc(m.texto)}</span>` : ''}
+              ${m.archivo_url ? `<img class="chat-img" src="${esc(m.archivo_url)}" alt="Adjunto" onclick="verFoto('${esc(m.archivo_url)}', '${esc(m.texto || '')}')">` : ''}
+              <small class="hora">${fmtFecha(m.fecha)}</small>
+            </div>
+          `).join('') : '<div class="empty-state"><p>Aún no hay mensajes en esta conversación.</p></div>'}
+        </div>
+
+        <div class="chat-composer">
+          ${listaRespuestasRapidas.length ? `
+            <div class="quick-replies">
+              ${listaRespuestasRapidas.map(r => `
+                <button type="button" class="quick-btn" onclick="usarRespuestaRapida('${esc(r.texto)}')">${esc(r.titulo)}</button>
+              `).join('')}
+            </div>
+          ` : ''}
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <input id="mt" placeholder="Escribe un mensaje para el cliente..." style="flex:1;min-width:200px" onkeydown="if(event.key==='Enter')enviar()">
+            <input id="mf" type="file" accept="image/*" capture="environment" style="max-width:210px" title="Adjuntar imagen">
+            <button onclick="enviar()">Enviar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==============================================================
+         PESTAÑA 4: HISTORIAL (LÍNEA DE TIEMPO VERTICAL)
+         ============================================================== -->
+    <div id="tabPanel_historial" class="hidden">
+      <div class="card">
+        <h3 class="card-title" style="margin-bottom:14px">Línea de tiempo de estatus</h3>
+        <div class="timeline">
+          ${(o.historial || []).map(h => `
+            <div class="timeline-item">
+              <span class="timeline-dot"></span>
+              <div class="timeline-title">${esc(h.estatus)}</div>
+              <div class="timeline-meta">${fmtFecha(h.fecha)} ${h.usuario_nombre ? `· por ${esc(h.usuario_nombre)}` : ''}</div>
+              ${h.nota ? `<div class="timeline-note">${esc(h.nota)}</div>` : ''}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      ${(o.bitacora || []).length ? `
+        <div class="card">
+          <h3 class="card-title" style="margin-bottom:12px">Bitácora interna de auditoría</h3>
+          <div class="timeline">
+            ${o.bitacora.map(b => `
+              <div class="timeline-item">
+                <span class="timeline-dot"></span>
+                <div class="timeline-title">${esc(b.campo)} <small class="text-muted">por ${esc(b.usuario_nombre || 'Sistema')}</small></div>
+                <div class="timeline-meta">${fmtFecha(b.fecha)}</div>
+                <div class="timeline-note">Antes: <b>${esc(b.valor_anterior || '—')}</b> → Nuevo: <b>${esc(b.valor_nuevo || '—')}</b></div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
+    </div>
+  `;
+
+  renderFilasItemsCot();
+  cambiarTabDetalle(tabDetalleActual);
+  const c = $('ch');
+  if (c) c.scrollTop = c.scrollHeight;
+
+  if (ws) ws.close();
+  ws = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws/' + f);
+  ws.onmessage = () => { abrir(actual, false); listar(); cargarDashboard(); };
+}
+
+async function subirFotos() {
+  const files = $('fFiles').files;
+  if (!files || !files.length) return alert('Selecciona al menos una imagen');
+  const btn = $('btnSubirFoto');
+  btn.disabled = true;
+  btn.textContent = 'Subiendo...';
+  try {
+    const fd = new FormData();
+    fd.append('etapa', $('fEtapa').value);
+    if ($('fDesc').value.trim()) fd.append('descripcion', $('fDesc').value.trim());
+    for (const f of files) fd.append('archivos', f);
+    await apiForm(`/ordenes/${actual}/fotos`, fd);
+    await abrir(actual, false);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Subir';
+  }
+}
+
+async function eliminarFoto(id) {
+  if (!confirm('¿Eliminar esta fotografía de evidencia?')) return;
+  await api(`/ordenes/${actual}/fotos/${id}`, 'DELETE');
+  await abrir(actual, false);
+}
+
+async function estatus() {
+  await api(`/ordenes/${actual}/estatus`, 'PATCH', {
+    estatus: $('ne').value,
+    nota: $('nn').value || null
+  });
+  await Promise.all([abrir(actual, false), listar(), cargarDashboard()]);
+}
+
+async function enviar() {
+  const t = $('mt').value.trim();
+  const file = $('mf').files[0];
+  if (!t && !file) return;
+  if (file) {
+    const fd = new FormData();
+    fd.append('texto', t);
+    fd.append('archivo', file);
+    await apiForm(`/ordenes/${actual}/mensajes/foto`, fd);
+  } else {
+    await api(`/ordenes/${actual}/mensajes`, 'POST', { texto: t });
+  }
+  await abrir(actual, false);
+}
+
+if (T) iniciar();
+</script>
+</body>
+</html>

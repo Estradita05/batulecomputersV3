@@ -1,0 +1,10 @@
+{
+  "name": "Taller de Cómputo — Seguimiento",
+  "short_name": "Mi Equipo",
+  "description": "Consulta el avance de reparación de tu equipo, cotizaciones y chat con el técnico.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f3f4f6",
+  "theme_color": "#1e3a8a",
+  "lang": "es-MX"
+}

@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+venv/
+.venv/
+
+# Environment & Secrets
+.env
+taller/.env
+taller/backend/.env
+
+# Database data
+.pgdata/
+taller/.pgdata/
+
+# Uploads (keep folder structure)
+taller/backend/uploads/*
+!taller/backend/uploads/.gitkeep

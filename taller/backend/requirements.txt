@@ -1,0 +1,17 @@
+fastapi
+uvicorn[standard]
+psycopg[binary,pool]
+pyjwt
+bcrypt
+python-multipart
+Pillow
+boto3
+alembic
+sqlalchemy
+python-dotenv
+pytest
+httpx
+qrcode[pil]
+reportlab
+apscheduler
+openpyxl
