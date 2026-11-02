@@ -422,7 +422,7 @@
             <span class="step-badge">2</span>
             <div>
               <h3 class="card-title">Identificación del equipo</h3>
-              <small>Selecciona la sección (Bajos, Medios o Altos) e ingresa manualmente el tipo de equipo y sus datos</small>
+              <small>Selecciona la sección (Bajos, Medios o Altos) y elige el tipo de equipo de la lista o selecciona "Otros"</small>
             </div>
           </div>
 
@@ -443,8 +443,11 @@
           <div class="form-grid cols-3">
             <div class="field">
               <label for="tp">Tipo de equipo *</label>
-              <input id="tp" placeholder="Escribe manualmente el tipo de equipo o servicio...">
-              <span id="errTipoEquipo" class="field-error">Ingresa el tipo de equipo</span>
+              <select id="tp" onchange="alCambiarTipoEquipo()">
+                <option value="">Selecciona un tipo de equipo...</option>
+              </select>
+              <input id="tpOtro" class="hidden" placeholder="Especifica el otro tipo de equipo..." style="margin-top:8px" oninput="validarTipoEquipoOtro(false)" onchange="validarTipoEquipoOtro(true)">
+              <span id="errTipoEquipo" class="field-error">Selecciona o ingresa el tipo de equipo</span>
             </div>
             <div class="field">
               <label for="mk">Marca</label>
@@ -1068,6 +1071,7 @@ async function iniciar() {
   $('filtroTecnico').innerHTML = '<option value="">Todos los técnicos</option>' +
     listaTecnicos.map(t => `<option value="${t.id}">${esc(t.nombre)}</option>`).join('');
   renderSugerenciasIniciales();
+  seleccionarSeccionEquipo($('secEquipoActual')?.value || 'bajos');
 
   await Promise.all([cargarDashboard(), listar()]);
 }
@@ -1529,27 +1533,93 @@ function seleccionarClienteParaEquipo(clienteId) {
 }
 
 // ---------- Sección 3: Crear Orden de Servicio ----------
+const TIPOS_EQUIPO_POR_SECCION = {
+  bajos: ['LAPTOP', 'ALL IN ONE', 'CPU', 'TABLET', 'CELULAR'],
+  medios: ['CARGADOR', 'IMPRESORA', 'NOBREAK', 'CARTUCHO', 'BOCINA', 'CAMARA', 'DD EXTERNO', 'ESCANER', 'MEMORIA USB', 'MONITOR'],
+  altos: ['LAPTOP', 'ALL IN ONE']
+};
+
+function normalizarTextoEquipo(str) {
+  return (str || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toUpperCase();
+}
+
 function seleccionarSeccionEquipo(sec) {
   if ($('secEquipoActual')) $('secEquipoActual').value = sec;
   ['bajos', 'medios', 'altos'].forEach(s => {
     const btn = $(`btnSec_${s}`);
     if (btn) btn.classList.toggle('activo', s === sec);
   });
-  const inpTp = $('tp');
-  if (inpTp) {
-    if (sec === 'bajos') {
-      inpTp.placeholder = 'Ej. Formateo Windows 11, Office, Antivirus, Respaldo...';
-    } else if (sec === 'medios') {
-      inpTp.placeholder = 'Ej. Impresora, Disco duro, Memoria USB/RAM, Cargador...';
-    } else {
-      inpTp.placeholder = 'Ej. Laptop, CPU / Escritorio, All in One, Tarjeta madre...';
-    }
+
+  const selTp = $('tp');
+  const inpOtro = $('tpOtro');
+  const opciones = TIPOS_EQUIPO_POR_SECCION[sec] || TIPOS_EQUIPO_POR_SECCION.bajos;
+
+  if (selTp) {
+    selTp.innerHTML =
+      '<option value="">Selecciona un tipo de equipo...</option>' +
+      opciones.map(op => `<option value="${esc(op)}">${esc(op)}</option>`).join('') +
+      '<option value="OTROS">OTROS</option>';
+    selTp.value = '';
   }
+
+  if (inpOtro) {
+    inpOtro.value = '';
+    inpOtro.classList.add('hidden');
+  }
+  limpiarErrorCampo('tp', 'errTipoEquipo');
+  limpiarErrorCampo('tpOtro', 'errTipoEquipo');
+}
+
+function alCambiarTipoEquipo() {
+  const selTp = $('tp');
+  const inpOtro = $('tpOtro');
+  limpiarErrorCampo('tp', 'errTipoEquipo');
+  limpiarErrorCampo('tpOtro', 'errTipoEquipo');
+  if (!selTp || !inpOtro) return;
+
+  if (selTp.value === 'OTROS') {
+    inpOtro.classList.remove('hidden');
+    inpOtro.value = '';
+    inpOtro.focus();
+  } else {
+    inpOtro.classList.add('hidden');
+    inpOtro.value = '';
+  }
+}
+
+function validarTipoEquipoOtro(mostrarAlerta = true) {
+  const inpOtro = $('tpOtro');
+  if (!inpOtro) return true;
+  limpiarErrorCampo('tpOtro', 'errTipoEquipo');
+
+  const valorEscrito = normalizarTextoEquipo(inpOtro.value);
+  if (!valorEscrito) return true;
+
+  const sec = ($('secEquipoActual')?.value || 'bajos').toLowerCase();
+  const opciones = TIPOS_EQUIPO_POR_SECCION[sec] || [];
+  const coincidencia = opciones.find(op => normalizarTextoEquipo(op) === valorEscrito);
+
+  if (coincidencia) {
+    if (mostrarAlerta) {
+      alert(`El tipo de equipo "${coincidencia}" ya existe en la lista de esta sección. Selecciónalo directamente en el menú desplegable.`);
+      inpOtro.value = '';
+      inpOtro.focus();
+    }
+    mostrarErrorCampo('tpOtro', 'errTipoEquipo', `El tipo de equipo "${coincidencia}" ya existe en la lista`);
+    return false;
+  }
+  return true;
 }
 
 async function crear() {
   limpiarErrorCampo('selClienteOrden', 'errCliOrden');
   limpiarErrorCampo('tp', 'errTipoEquipo');
+  limpiarErrorCampo('tpOtro', 'errTipoEquipo');
   limpiarErrorCampo('iniTecnicos', 'errIniTecnicos');
   limpiarErrorCampo('fa', 'errFallaOrden');
 
@@ -1560,10 +1630,23 @@ async function crear() {
     return;
   }
 
-  const tipoManual = ($('tp')?.value || '').trim();
-  if (!tipoManual) {
-    mostrarErrorCampo('tp', 'errTipoEquipo', 'Escribe manualmente el tipo de equipo');
+  const selTpVal = ($('tp')?.value || '').trim();
+  if (!selTpVal) {
+    mostrarErrorCampo('tp', 'errTipoEquipo', 'Selecciona un tipo de equipo de la lista');
     return;
+  }
+
+  let tipoManual = selTpVal;
+  if (selTpVal === 'OTROS') {
+    const otroVal = ($('tpOtro')?.value || '').trim();
+    if (!otroVal) {
+      mostrarErrorCampo('tpOtro', 'errTipoEquipo', 'Escribe qué tipo de equipo es');
+      return;
+    }
+    if (!validarTipoEquipoOtro(true)) {
+      return;
+    }
+    tipoManual = otroVal.toUpperCase();
   }
 
   const iniTec = ($('iniTecnicos')?.value || '').trim().toUpperCase();
@@ -1606,9 +1689,10 @@ async function crear() {
       await apiForm(`/ordenes/${r.folio}/fotos`, fd);
     }
 
-    ['tp', 'mk', 'md', 'ns', 'iniTecnicos', 'fa', 'ac', 'pe', 'fe', 'fotosRec', 'fotosRecDesc', 'buscarCliOrden'].forEach(i => {
+    ['tp', 'tpOtro', 'mk', 'md', 'ns', 'iniTecnicos', 'fa', 'ac', 'pe', 'fe', 'fotosRec', 'fotosRecDesc', 'buscarCliOrden'].forEach(i => {
       if ($(i)) $(i).value = '';
     });
+    if ($('tpOtro')) $('tpOtro').classList.add('hidden');
     $('selClienteOrden').value = '';
     alSeleccionarClienteOrden();
 

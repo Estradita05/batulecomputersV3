@@ -11,9 +11,11 @@
     .btn{background:#2563eb;color:#fff;border:0;border-radius:8px;padding:9px 18px;font-weight:600;cursor:pointer;font-size:14px}
     .btn.sec{background:#334155}
     .ticket{max-width:760px;margin:0 auto;background:#fff;border-radius:12px;padding:28px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
-    .encabezado{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1e3a8a;padding-bottom:14px;margin-bottom:16px}
-    .marca h1{margin:0;font-size:22px;color:#0f172a;letter-spacing:.03em}
-    .marca p{margin:3px 0 0;font-size:12px;color:#475569}
+    .encabezado{display:flex;justify-content:space-between;align-items:center;gap:16px;border-bottom:2px solid #1e3a8a;padding-bottom:14px;margin-bottom:16px}
+    .marca{display:flex;align-items:center;gap:14px}
+    .logo-ticket{height:68px;width:auto;max-width:150px;object-fit:contain;border-radius:6px;flex-shrink:0}
+    .marca-info h1{margin:0;font-size:22px;color:#0f172a;letter-spacing:.03em}
+    .marca-info p{margin:3px 0 0;font-size:12px;color:#475569}
     .folio-box{text-align:right}
     .folio-box .folio{font-size:20px;font-weight:800;color:#1d4ed8}
     .folio-box .estatus{display:inline-block;margin-top:4px;background:#dbeafe;color:#1e40af;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:700}
@@ -84,9 +86,12 @@
       document.getElementById('contenidoTicket').innerHTML = `
         <div class="encabezado">
           <div class="marca">
-            <h1>🖥️ BATULE COMPUTERS</h1>
-            <p>Taller de Reparación, Diagnóstico y Mantenimiento de Cómputo</p>
-            <p>Seguimiento en línea: <b>${esc(urlSeguimiento)}</b></p>
+            <img class="logo-ticket" src="/logo.jpg" alt="BATULE COMPUTERS">
+            <div class="marca-info">
+              <h1>BATULE COMPUTERS</h1>
+              <p>Tel.(442) 183-1854 / 4424058799 / 4272063751</p>
+              <p>Seguimiento en línea: <b>${esc(urlSeguimiento)}</b></p>
+            </div>
           </div>
           <div class="folio-box">
             <div class="folio">${esc(o.folio)}</div>
@@ -98,24 +103,24 @@
 
         <div class="grid2">
           <div class="bloque">
-            <h3>1. Datos del Cliente</h3>
+            <h3>Datos del Cliente</h3>
             <div class="dato"><b>Núm. de Cliente:</b> ${esc(o.numero_cliente || '—')}</div>
             <div class="dato"><b>Nombre:</b> ${esc(o.cliente)}</div>
             <div class="dato"><b>Teléfono / WhatsApp:</b> ${esc(o.telefono)}</div>
             <div class="dato"><b>Correo:</b> ${esc(o.correo || 'No registrado')}</div>
-            <div class="dato"><b>Iniciales de técnicos que reciben:</b> ${esc(o.iniciales_tecnicos || o.tecnico_nombre || 'Por asignar')}</div>
+            <div class="dato"><b>Técnico:</b> ${esc(o.iniciales_tecnicos || o.tecnico_nombre || 'Por asignar')}</div>
           </div>
           <div class="bloque">
-            <h3>2. Identificación del Equipo</h3>
+            <h3>Equipo</h3>
             ${o.seccion_equipo ? `<div class="dato"><b>Sección:</b> ${esc(o.seccion_equipo)}</div>` : ''}
             <div class="dato"><b>Dispositivo / Servicio:</b> ${esc(o.tipo)} ${esc(o.marca || '')} ${esc(o.modelo || '')}</div>
             <div class="dato"><b>Número de Serie (S/N):</b> ${esc(o.num_serie || 'N/A')}</div>
-            <div class="dato"><b>Accesorios / Inspección:</b> ${esc(o.accesorios || 'Ninguno')}</div>
+            <div class="dato"><b>Accesorios:</b> ${esc(o.accesorios || 'Ninguno')}</div>
           </div>
         </div>
 
         <div class="bloque" style="margin-bottom:14px">
-          <h3>3. Motivo de Ingreso / Falla Reportada</h3>
+          <h3>Falla Reportada</h3>
           <div class="dato">${esc(o.falla)}</div>
         </div>
 
@@ -193,7 +198,11 @@
         </div>
 
         <div class="condiciones">
-          <b>Condiciones de servicio:</b> Para recoger el equipo es indispensable presentar este comprobante o acreditar la titularidad.
+          <b>Condiciones de servicio:</b> Sin la presente orden de servicio no se entregará ningún equipo. A excepción de autorización y con previa identificación.
+          No se aceptarán reclamos después de 60 días por equipos olvidados.
+          El servicio cuenta con una garantía de 30 días sobre la misma falla. En software no aplica garantía.
+          En caso de no aceptar la reparación, se cobrará una cuota de diagnóstico y manejo de equipo.
+          
           Puedes consultar fotografías de evidencia, aprobar cotizaciones y chatear en tiempo real con el técnico ingresando tu folio
           <b>${esc(o.folio)}</b> y tu número telefónico de 10 dígitos en nuestro portal web.
         </div>
